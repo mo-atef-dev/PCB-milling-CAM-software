@@ -1,0 +1,97 @@
+# depslib dependency file v1.0
+1638906790 source:c:\users\mohamed atef\documents\ee school\data structures\tests\2019\pcbsoftware\main.cpp
+	<stdio.h>
+	<tchar.h>
+	<windows.h>
+	<windowsx.h>
+	<Commdlg.h>
+	<gdiplus.h>
+	"resources.h"
+	"Header.h"
+
+1638565287 source:c:\users\mohamed atef\documents\ee school\data structures\tests\2019\pcbsoftware\resources.rc
+	"resources.h"
+
+1638565303 c:\users\mohamed atef\documents\ee school\data structures\tests\2019\pcbsoftware\resources.h
+
+1638906314 source:c:\users\mohamed atef\documents\ee school\data structures\tests\2019\pcbsoftware\source.cpp
+	"Header.h"
+
+1638780217 c:\users\mohamed atef\documents\ee school\data structures\tests\2019\pcbsoftware\header.h
+	<shobjidl.h>
+	<d2d1.h>
+	<math.h>
+	<stdio.h>
+
+1638565287 source:d:\books\faculty\4th\project\v1\pcbsoftware\resources.rc
+	"resources.h"
+
+1638565303 d:\books\faculty\4th\project\v1\pcbsoftware\resources.h
+
+1638975809 source:d:\books\faculty\4th\project\v1\pcbsoftware\source.cpp
+	"Header.h"
+
+1638975535 d:\books\faculty\4th\project\v1\pcbsoftware\header.h
+	<shobjidl.h>
+	<d2d1.h>
+	<math.h>
+	<stdio.h>
+
+1638975632 source:d:\books\faculty\4th\project\v1\pcbsoftware\main.cpp
+	<tchar.h>
+	<windows.h>
+	<windowsx.h>
+	<Commdlg.h>
+	<gdiplus.h>
+	"resources.h"
+	"Header.h"
+	<stdio.h>
+
+1638985130 source:c:\users\mohamed atef\documents\ee school\graduation project\windows software\pcbsoftware_v2\resources.rc
+	"resources.h"
+
+1638983689 c:\users\mohamed atef\documents\ee school\graduation project\windows software\pcbsoftware_v2\resources.h
+
+1638994229 source:c:\users\mohamed atef\documents\ee school\graduation project\windows software\pcbsoftware_v2\source.cpp
+	"Header.h"
+
+1638999079 c:\users\mohamed atef\documents\ee school\graduation project\windows software\pcbsoftware_v2\header.h
+	<shobjidl.h>
+	<d2d1.h>
+	<math.h>
+	<stdio.h>
+
+1638999087 source:c:\users\mohamed atef\documents\ee school\graduation project\windows software\pcbsoftware_v2\main.cpp
+	<tchar.h>
+	<windows.h>
+	<windowsx.h>
+	<Commdlg.h>
+	<gdiplus.h>
+	"resources.h"
+	"Header.h"
+	<stdio.h>
+
+1638998747 source:d:\books\faculty\4th\project\v1\v2\pcbsoftware_v2\main.cpp
+	<tchar.h>
+	<windows.h>
+	<windowsx.h>
+	<Commdlg.h>
+	<gdiplus.h>
+	"resources.h"
+	"Header.h"
+	<stdio.h>
+
+1638983689 d:\books\faculty\4th\project\v1\v2\pcbsoftware_v2\resources.h
+
+1638999079 d:\books\faculty\4th\project\v1\v2\pcbsoftware_v2\header.h
+	<shobjidl.h>
+	<d2d1.h>
+	<math.h>
+	<stdio.h>
+
+1638985130 source:d:\books\faculty\4th\project\v1\v2\pcbsoftware_v2\resources.rc
+	"resources.h"
+
+1638998857 source:d:\books\faculty\4th\project\v1\v2\pcbsoftware_v2\source.cpp
+	"Header.h"
+

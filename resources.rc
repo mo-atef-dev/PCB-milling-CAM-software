@@ -1,0 +1,23 @@
+#include "resources.h"
+
+RSRC_MENU MENU
+BEGIN
+    POPUP "&File"
+    BEGIN
+        MENUITEM "&New", ID_EXIT, GRAYED
+        MENUITEM SEPARATOR
+        MENUITEM "&Open", ID_OPEN
+        MENUITEM SEPARATOR
+        MENUITEM "&Save", ID_SAVE, GRAYED
+        MENUITEM "&Save As", ID_SAVE, GRAYED
+        MENUITEM SEPARATOR
+        MENUITEM "&Exit", ID_EXIT
+    END
+    POPUP "&Edit"
+    BEGIN
+        MENUITEM "&Generate MaxCopper", ID_MAXCPR, GRAYED
+        MENUITEM "&Generate G-Code", ID_GCODE, GRAYED
+    END
+END
+
+IDI_ICON ICON "resources/pcb.ico"
