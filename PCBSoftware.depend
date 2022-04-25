@@ -52,7 +52,7 @@
 
 1638983689 c:\users\mohamed atef\documents\ee school\graduation project\windows software\pcbsoftware_v2\resources.h
 
-1638994229 source:c:\users\mohamed atef\documents\ee school\graduation project\windows software\pcbsoftware_v2\source.cpp
+1649418348 source:c:\users\mohamed atef\documents\ee school\graduation project\windows software\pcbsoftware_v2\source.cpp
 	"Header.h"
 
 1638999079 c:\users\mohamed atef\documents\ee school\graduation project\windows software\pcbsoftware_v2\header.h
@@ -61,11 +61,14 @@
 	<math.h>
 	<stdio.h>
 
-1638999087 source:c:\users\mohamed atef\documents\ee school\graduation project\windows software\pcbsoftware_v2\main.cpp
+1650901192 source:c:\users\mohamed atef\documents\ee school\graduation project\windows software\pcbsoftware_v2\main.cpp
 	<tchar.h>
 	<windows.h>
 	<windowsx.h>
 	<Commdlg.h>
+	"cmncontrols.h"
+	"maxCupper_loading.h"
+	"tracebmp.h"
 	<gdiplus.h>
 	"resources.h"
 	"Header.h"
@@ -94,4 +97,58 @@
 
 1638998857 source:d:\books\faculty\4th\project\v1\v2\pcbsoftware_v2\source.cpp
 	"Header.h"
+
+1650900571 c:\users\mohamed atef\documents\ee school\graduation project\windows software\pcbsoftware_v2\cmncontrols.h
+	<windows.h>
+	<commctrl.h>
+
+1650901435 source:c:\users\mohamed atef\documents\ee school\graduation project\windows software\pcbsoftware_v2\cmncontrols.cpp
+	"cmncontrols.h"
+
+1650913608 source:c:\users\mohamed atef\documents\ee school\graduation project\windows software\pcbsoftware_v2\tracebmp.cpp
+	"tracebmp.h"
+
+1650913621 c:\users\mohamed atef\documents\ee school\graduation project\windows software\pcbsoftware_v2\tracebmp.h
+	<string>
+	<vector>
+	<iostream>
+	"bitmap_image.hpp"
+
+946674000 c:\users\mohamed atef\documents\ee school\graduation project\windows software\pcbsoftware_v2\bitmap_image.hpp
+	<algorithm>
+	<cmath>
+	<cstdlib>
+	<cstring>
+	<fstream>
+	<iostream>
+	<iterator>
+	<limits>
+	<string>
+	<vector>
+
+1650794560 c:\users\mohamed atef\documents\ee school\graduation project\windows software\pcbsoftware_v2\maxcupper_loading.h
+	<wincodec.h>
+	<objbase.h>
+	<combaseapi.h>
+	<winuser.h>
+	<windef.h>
+	<d2d1.h>
+	<d2d1helper.h>
+	<shlwapi.h>
+	<math.h>
+	<stdio.h>
+	"BMP.h"
+
+1650313914 c:\users\mohamed atef\documents\ee school\graduation project\windows software\pcbsoftware_v2\bmp.h
+	<fstream>
+	<vector>
+	<stdexcept>
+	<iostream>
+
+1646836907 source:c:\users\mohamed atef\documents\ee school\graduation project\windows software\pcbsoftware_v2\tracecheck.cpp
+	"tracecheck.h"
+
+1646434105 c:\users\mohamed atef\documents\ee school\graduation project\windows software\pcbsoftware_v2\tracecheck.h
+	"tracebmp.h"
+	<cstdlib>
 

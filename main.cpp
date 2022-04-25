@@ -10,6 +10,10 @@
 #include <windows.h>
 #include <windowsx.h>
 #include <Commdlg.h>
+#include "cmncontrols.h"
+#include "maxCupper_loading.h"
+#include "tracebmp.h"
+#include "tracecheck.h"
 
 // Graphics header files
 #include <gdiplus.h>
@@ -46,11 +50,15 @@ TCHAR szClassName[ ] = _T("PCBWindow");
 WCHAR szImageFile[MAX_PATH] = L"";
 Bitmap* image = NULL;
 CHAR* szFileBuffer = NULL;
+string mmgString;
 
 /* Global variables for drawing window coordinates */
 REAL origin_x = 0;
 REAL origin_y = 0;
 REAL img_scale = 1;
+
+/* Other variables */
+HMENU menu;
 
 int WINAPI WinMain (HINSTANCE hThisInstance,
                      HINSTANCE hPrevInstance,
@@ -121,6 +129,9 @@ int WINAPI WinMain (HINSTANCE hThisInstance,
     ///create factory for drawing
     creat_factory();
 
+    /// Init common controls
+    DOInitCommonControls();
+
     /* Run the message loop. It will run until GetMessage() returns 0 */
     while (GetMessage (&messages, NULL, 0, 0))
     {
@@ -153,12 +164,22 @@ LRESULT CALLBACK WindowProcedure (HWND hwnd, UINT message, WPARAM wParam, LPARAM
     static BOOL bLButtonHold = FALSE;
     static int init_mouse_x = 0;
     static int init_mouse_y = 0;
+    static CMNStatusBar status_bar;
 
     switch (message)                  /* handle the messages */
     {
+        case WM_CREATE:
+            menu = GetMenu(hwnd);
+            status_bar.InitBar(hwnd, 0, GetModuleHandle(NULL), 4);
+            status_bar.UpdateText(0, "Status text");
+        break;
         case WM_DESTROY:
             PostQuitMessage (0);       /* send a WM_QUIT to the message queue */
             break;
+        case WM_SIZE:
+            status_bar.ResizeBar();
+            break;
+        /*
         case WM_PAINT:
         {
             ///resize the window without effect the shape (resize and draw
@@ -206,12 +227,13 @@ LRESULT CALLBACK WindowProcedure (HWND hwnd, UINT message, WPARAM wParam, LPARAM
 			if(szFileBuffer)
             {
                 ///pass the scale_factor,  offset_x, offset_y to the function
-                draw(hwnd, szFileBuffer, img_scale,  origin_x, origin_y);
+                //draw(hwnd, szFileBuffer, img_scale,  origin_x, origin_y);
             }
 			EndPaint(hwnd, &ps);
             #endif
         }
         break;
+        */
         case WM_LBUTTONDOWN:
         {
             bLButtonHold = TRUE;
@@ -239,6 +261,12 @@ LRESULT CALLBACK WindowProcedure (HWND hwnd, UINT message, WPARAM wParam, LPARAM
                 InvalidateRect(hwnd, NULL, FALSE);
                 printf("## Left Button is held ##");
             }
+            char xstr[20];
+            char ystr[20];
+            sprintf_s(xstr, 20, "X : %d", GET_X_LPARAM(lParam));
+            sprintf_s(ystr, 20, "Y : %d", GET_Y_LPARAM(lParam));
+            status_bar.UpdateText(1, xstr);
+            status_bar.UpdateText(2, ystr);
         }
         break;
         case WM_MOUSEWHEEL:
@@ -293,6 +321,8 @@ LRESULT CALLBACK WindowProcedure (HWND hwnd, UINT message, WPARAM wParam, LPARAM
                     ofn.lpstrInitialDir = L"Documents";
                     ofn.Flags = OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST | OFN_HIDEREADONLY;
 
+                    printf("\nStarting open file dialog box\n");
+
                     // Display the Open dialog box.
                     if (GetOpenFileNameW(&ofn)==TRUE)
                     {
@@ -322,6 +352,7 @@ LRESULT CALLBACK WindowProcedure (HWND hwnd, UINT message, WPARAM wParam, LPARAM
                                     printf("\nERROR: Number of bytes read is more than the maximum allowed!\n");
                                 }
                                 szFileBuffer[fileSize]= 0;  // Safe null terminator
+                                EnableMenuItem(menu, ID_MAXCPR, MF_ENABLED);
                             }
                             else
                             {
@@ -343,6 +374,67 @@ LRESULT CALLBACK WindowProcedure (HWND hwnd, UINT message, WPARAM wParam, LPARAM
                         MessageBox(NULL, "Failed to open file", "Error", MB_OK | MB_ICONERROR);
                     }
                 }
+                break;
+                case ID_SAVE:
+
+                break;
+                case ID_MAXCPR:
+
+                    if(szFileBuffer)
+                    {
+                        MessageBox(hwnd, "Generation of Max-Copper will start. Press OK to continue", "Info", MB_OK | MB_ICONINFORMATION);
+                        DrawGerberOnBitmab(hwnd, szFileBuffer, NULL, NULL, NULL, NULL, NULL);
+                        PixelMatrix pm(bitmapObject.GetWidth(), bitmapObject.GetHeight());
+                        for(int i = 0; i < bitmapObject.GetWidth(); i++)
+                        {
+                            for(int j = 0; j < bitmapObject.GetHeight(); j++)
+                            {
+                                if(bitmapObject.isBlack(i, j))
+                                {
+                                    pm.SetPixelState(i, j, ISOLATE);
+                                }
+                            }
+                        }
+                        vector<Command> traceCmds = TracePixelMatrix(&pm);
+                        mmgString = CommandsString(traceCmds, 0.1f, true);
+
+                        /// Create a file to store the resulting mmg commands
+
+                        HANDLE hfile = CreateFileW(L"./out.mmg", GENERIC_WRITE, FILE_SHARE_READ, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
+                        if(hfile != INVALID_HANDLE_VALUE)
+                        {
+                            DWORD writtenBytes;
+                            if(WriteFile(hfile, mmgString.c_str(), mmgString.size(), &writtenBytes, NULL))
+                            {
+                                printf("Successfully written the output file out.mmg with total amount of %d bytes written\n", writtenBytes);
+                            }
+                            else
+                            {
+                                printf("ERROR ## Failed to write the output file out.mmg with total amount of %d bytes written\n", writtenBytes);
+                            }
+                            CloseHandle(hfile);
+                        }
+                        else
+                        {
+                            printf("ERROR ## Failed to create the output mmg file\n");
+                        }
+
+                        ///
+
+                        /// Draw the output image
+
+                        bitmap_image img2(bitmapObject.GetWidth(), bitmapObject.GetHeight());
+                        img2.set_all_channels(255);
+                        DetailedCheck(traceCmds, img2).img.save_image("out.bmp");
+
+                        ///
+                    }
+                    else
+                    {
+                        MessageBox(hwnd, "Please open a file first", "Error", MB_OK | MB_ICONERROR);
+                    }
+
+                break;
             }
         }
             break;

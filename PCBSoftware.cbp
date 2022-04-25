@@ -44,15 +44,25 @@
 			<Add library="comdlg32" />
 			<Add library="gdiplus" />
 			<Add library="d2d1" />
-			<Add library="comctl32" />
+			<Add library="ole32" />
+			<Add library="windowscodecs" />
 		</Linker>
+		<Unit filename="BMP.h" />
 		<Unit filename="Header.h" />
 		<Unit filename="Source.cpp" />
+		<Unit filename="bitmap_image.hpp" />
+		<Unit filename="cmncontrols.cpp" />
+		<Unit filename="cmncontrols.h" />
 		<Unit filename="main.cpp" />
+		<Unit filename="maxCupper_loading.h" />
 		<Unit filename="resources.h" />
 		<Unit filename="resources.rc">
 			<Option compilerVar="WINDRES" />
 		</Unit>
+		<Unit filename="tracebmp.cpp" />
+		<Unit filename="tracebmp.h" />
+		<Unit filename="tracecheck.cpp" />
+		<Unit filename="tracecheck.h" />
 		<Extensions />
 	</Project>
 </CodeBlocks_project_file>
