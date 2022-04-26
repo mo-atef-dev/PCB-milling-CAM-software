@@ -14,6 +14,7 @@
 #include "maxCupper_loading.h"
 #include "tracebmp.h"
 #include "tracecheck.h"
+#include "app.h"
 
 // Graphics header files
 #include <gdiplus.h>
@@ -23,7 +24,7 @@
 using namespace Gdiplus;
 
 // My header files
-#include "resources.h"
+#include "resource.h"
 
 // Software constants
 #define ZOOMIN_FAC 1.1
@@ -382,6 +383,21 @@ LRESULT CALLBACK WindowProcedure (HWND hwnd, UINT message, WPARAM wParam, LPARAM
 
                     if(szFileBuffer)
                     {
+                        DlgStrct_MaxCopper result;
+                        printf("Result address: %x\n", (&result));
+                        if(DialogBoxParam(GetModuleHandle(NULL), MAKEINTRESOURCE(IDD_MAXCPR), hwnd, (DLGPROC)DlgProc_MaxCopper, (LPARAM)(&result)) == IDOK)
+                        {
+                            if(!result.valid)
+                            {
+                                MessageBox(NULL, "Please enter correct numbers in the text fields", "Error", MB_OK | MB_ICONERROR);
+                                return 0;
+                            }
+                        }
+                        else
+                        {
+                            return 0;
+                        }
+
                         MessageBox(hwnd, "Generation of Max-Copper will start. Press OK to continue", "Info", MB_OK | MB_ICONINFORMATION);
                         DrawGerberOnBitmab(hwnd, szFileBuffer, NULL, NULL, NULL, NULL, NULL);
                         PixelMatrix pm(bitmapObject.GetWidth(), bitmapObject.GetHeight());
@@ -395,8 +411,8 @@ LRESULT CALLBACK WindowProcedure (HWND hwnd, UINT message, WPARAM wParam, LPARAM
                                 }
                             }
                         }
-                        vector<Command> traceCmds = TracePixelMatrix(&pm);
-                        mmgString = CommandsString(traceCmds, 0.1f, true);
+                        vector<Command> traceCmds = TracePixelMatrix(&pm, result.zTop, result.zBottom);
+                        mmgString = CommandsString(traceCmds, result.pixTomm, true);
 
                         /// Create a file to store the resulting mmg commands
 

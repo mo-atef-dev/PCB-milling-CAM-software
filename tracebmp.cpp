@@ -116,7 +116,7 @@ vector<Command> TracePixelMatrix(PixelMatrix* matrix, int zTop, int zBottom)
         commands.push_back(Command(LINE, tempX, tempY, zBottom));
 
         // Create a path carving command set
-        vector<Command> commandsTmp = TracePixel(matrix, tempX, tempY);
+        vector<Command> commandsTmp = TracePixel(matrix, tempX, tempY, zTop, zBottom);
         commands.insert(commands.end(), commandsTmp.begin(), commandsTmp.end());
 
         // Set the current coordinates to the coordinates of the last command
