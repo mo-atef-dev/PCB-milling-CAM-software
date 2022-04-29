@@ -16,13 +16,6 @@
 #include "tracecheck.h"
 #include "app.h"
 
-// Graphics header files
-#include <gdiplus.h>
-
-
-
-using namespace Gdiplus;
-
 // My header files
 #include "resource.h"
 
@@ -49,14 +42,13 @@ TCHAR szClassName[ ] = _T("PCBWindow");
 
 /* Global variable to hold opened file */
 WCHAR szImageFile[MAX_PATH] = L"";
-Bitmap* image = NULL;
 CHAR* szFileBuffer = NULL;
 string mmgString;
 
 /* Global variables for drawing window coordinates */
-REAL origin_x = 0;
-REAL origin_y = 0;
-REAL img_scale = 1;
+FLOAT origin_x = 0;
+FLOAT origin_y = 0;
+FLOAT img_scale = 1;
 
 /* Other variables */
 HMENU menu;
@@ -69,14 +61,6 @@ int WINAPI WinMain (HINSTANCE hThisInstance,
     HWND hwnd;               /* This is the handle for our window */
     MSG messages;            /* Here messages to the application are saved */
     WNDCLASSEX wincl;        /* Data structure for the windowclass */
-
-    #if defined(V_IMAGE)
-    // Initialize GDI+
-    GdiplusStartupInput gdiplusStartupInput;
-    ULONG_PTR gdiplusToken;
-
-    GdiplusStartup(&gdiplusToken, &gdiplusStartupInput, NULL);
-    #endif
 
     /* The main Window structure */
     wincl.hInstance = hThisInstance;
@@ -142,15 +126,8 @@ int WINAPI WinMain (HINSTANCE hThisInstance,
         DispatchMessage(&messages);
     }
 
-    #if defined(V_IMAGE)
-    // Terminate GDI+
-    GdiplusShutdown(gdiplusToken);
-    if(image)
-        delete image;
-    #else
     if(szFileBuffer)
         delete[] szFileBuffer;
-    #endif
 
     /* The program return-value is 0 - The value that PostQuitMessage() gave */
     return messages.wParam;
@@ -190,35 +167,6 @@ LRESULT CALLBACK WindowProcedure (HWND hwnd, UINT message, WPARAM wParam, LPARAM
             // In the examples the PAINTSTRUCT and HDC are declared inside the WM_PAINT message. See if this is disadvantageous in some way.
             //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-            #if defined(V_IMAGE)
-            printf("\nEntered WM_Paint message.\nCurrent Image File: ");
-            wprintf(szImageFile);
-
-            PAINTSTRUCT pstr;
-            HDC hdc = BeginPaint(hwnd, &pstr);
-
-            // Paint image
-            Graphics gr(hdc);
-            SolidBrush brush(Color( 255, 255, 255));
-            #warning "The fill rectangle dimensions are place holders, the dimensions should be obtained from the client window to assure the whole window is filled"
-            gr.FillRectangle(&brush, 0, 0, 1280, 720);
-            gr.ScaleTransform(img_scale, img_scale);
-            gr.TranslateTransform(origin_x, origin_y, MatrixOrderAppend);
-            if(szImageFile[0])
-            {
-                printf("\nImage file valid.\n");
-                //Image background(szImageFile, FALSE);
-                //Bitmap background(szImageFile, TRUE);
-                //CachedBitmap cachedImage(image, &gr);
-                Status imgStatus = gr.DrawImage(image, 0, 0);
-                //Status imgStatus = gr.DrawCachedBitmap(&cachedImage, 0, 0);
-                if(imgStatus != Ok)
-                {
-                    printf("Error drawing image! Status: %d", imgStatus);
-                }
-            }
-            EndPaint(hwnd, &pstr);
-            #else
             // Write code here for gerber version
 
             PAINTSTRUCT ps;
@@ -231,7 +179,6 @@ LRESULT CALLBACK WindowProcedure (HWND hwnd, UINT message, WPARAM wParam, LPARAM
                 //draw(hwnd, szFileBuffer, img_scale,  origin_x, origin_y);
             }
 			EndPaint(hwnd, &ps);
-            #endif
         }
         break;
         */
@@ -329,13 +276,6 @@ LRESULT CALLBACK WindowProcedure (HWND hwnd, UINT message, WPARAM wParam, LPARAM
                     {
                         wcscpy_s(szImageFile, MAX_PATH, szFile);
                         MessageBoxW(hwnd, szImageFile, L"File Opened Successfully", MB_OK | MB_ICONINFORMATION);
-                        #if defined (V_IMAGE)
-                        printf("\nImage file after opening: ");
-                        wprintf(szImageFile);
-                        if(image != NULL)
-                            delete image;
-                        image = new Bitmap(szImageFile, TRUE);
-                        #else
                         // Open file to get information
                         HANDLE hfile = CreateFileW(szImageFile, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
                         if(hfile)
@@ -365,7 +305,6 @@ LRESULT CALLBACK WindowProcedure (HWND hwnd, UINT message, WPARAM wParam, LPARAM
                         {
                             MessageBox(NULL, "Failed to create file handle", "Error", MB_OK | MB_ICONERROR);
                         }
-                        #endif
 
                         // Invalidate window to force it to completely redraw
                         InvalidateRect(hwnd, NULL, FALSE);
