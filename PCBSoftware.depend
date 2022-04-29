@@ -47,7 +47,7 @@
 	"Header.h"
 	<stdio.h>
 
-1650930253 source:c:\users\mohamed atef\documents\ee school\graduation project\windows software\pcbsoftware_v2\resources.rc
+1651265245 source:c:\users\mohamed atef\documents\ee school\graduation project\windows software\pcbsoftware_v2\resources.rc
 	<windows.h>
 	<commctrl.h>
 	<richedit.h>
@@ -64,7 +64,7 @@
 	<math.h>
 	<stdio.h>
 
-1650930352 source:c:\users\mohamed atef\documents\ee school\graduation project\windows software\pcbsoftware_v2\main.cpp
+1651263970 source:c:\users\mohamed atef\documents\ee school\graduation project\windows software\pcbsoftware_v2\main.cpp
 	<tchar.h>
 	<windows.h>
 	<windowsx.h>
@@ -74,7 +74,6 @@
 	"tracebmp.h"
 	"tracecheck.h"
 	"app.h"
-	<gdiplus.h>
 	"resource.h"
 	"Header.h"
 	<stdio.h>
@@ -157,14 +156,16 @@
 	"tracebmp.h"
 	<cstdlib>
 
-1650930253 c:\users\mohamed atef\documents\ee school\graduation project\windows software\pcbsoftware_v2\resource.h
+1651265245 c:\users\mohamed atef\documents\ee school\graduation project\windows software\pcbsoftware_v2\resource.h
 
-1650930505 source:c:\users\mohamed atef\documents\ee school\graduation project\windows software\pcbsoftware_v2\app.cpp
+1651265797 source:c:\users\mohamed atef\documents\ee school\graduation project\windows software\pcbsoftware_v2\app.cpp
 	"app.h"
 
-1650930388 c:\users\mohamed atef\documents\ee school\graduation project\windows software\pcbsoftware_v2\app.h
+1651265863 c:\users\mohamed atef\documents\ee school\graduation project\windows software\pcbsoftware_v2\app.h
 	<windows.h>
 	<stdlib.h>
 	<stdio.h>
+	<tchar.h>
+	<string>
 	"resource.h"
 

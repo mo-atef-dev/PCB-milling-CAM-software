@@ -10,8 +10,10 @@
 #define ID_MAXCPR                               5
 #define ID_GCODE                                6
 #define IDD_MAXCPR                              101
-#define IDOK                                    40000
-#define IDCANCEL                                40001
+#define ID_CANCEL                               40000
+#define ID_OPENTRACE                            40000
+#define ID_OPENCOPPER                           40001
 #define IDC_EDIT_PTOM                           40002
 #define IDC_EDIT_ZTOP                           40003
 #define IDC_EDIT_ZBOT                           40004
+#define ID_OK                                   40005

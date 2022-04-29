@@ -41,14 +41,17 @@ LRESULT CALLBACK WindowProcedure (HWND, UINT, WPARAM, LPARAM);
 TCHAR szClassName[ ] = _T("PCBWindow");
 
 /* Global variable to hold opened file */
-WCHAR szImageFile[MAX_PATH] = L"";
-CHAR* szFileBuffer = NULL;
+WCHAR szGerberPath[MAX_PATH] = L"";
+CHAR* szGerberBuffer = NULL;
 string mmgString;
 
 /* Global variables for drawing window coordinates */
 FLOAT origin_x = 0;
 FLOAT origin_y = 0;
 FLOAT img_scale = 1;
+
+/* Constants for program parameters */
+int layersWidth = 300;
 
 /* Other variables */
 HMENU menu;
@@ -60,7 +63,7 @@ int WINAPI WinMain (HINSTANCE hThisInstance,
 {
     HWND hwnd;               /* This is the handle for our window */
     MSG messages;            /* Here messages to the application are saved */
-    WNDCLASSEX wincl;        /* Data structure for the windowclass */
+    WNDCLASSEX wincl;        /* Data structure for the main windowclass */
 
     /* The main Window structure */
     wincl.hInstance = hThisInstance;
@@ -80,10 +83,17 @@ int WINAPI WinMain (HINSTANCE hThisInstance,
     wincl.hbrBackground = CreateSolidBrush(RGB(255, 255, 255));
 
     /* Register the window class, and if it fails quit the program */
-    if (!RegisterClassEx (&wincl))
+    if (!RegisterClassEx(&wincl))
     {
         MessageBox(NULL, "Couldn't create the main window!", "ERROR", MB_OK | MB_ICONERROR);
-        return 0;
+        return -1;
+    }
+
+    // Check that app initialization occurs correctly
+    if(App_Initialize(hThisInstance))
+    {
+        MessageBox(NULL, "Couldn't initialize the app", "ERROR", MB_OK | MB_ICONERROR);
+        return -1;
     }
 
     /* The class is registered, let's create the program*/
@@ -126,8 +136,8 @@ int WINAPI WinMain (HINSTANCE hThisInstance,
         DispatchMessage(&messages);
     }
 
-    if(szFileBuffer)
-        delete[] szFileBuffer;
+    if(szGerberBuffer)
+        delete[] szGerberBuffer;
 
     /* The program return-value is 0 - The value that PostQuitMessage() gave */
     return messages.wParam;
@@ -143,25 +153,41 @@ LRESULT CALLBACK WindowProcedure (HWND hwnd, UINT message, WPARAM wParam, LPARAM
     static int init_mouse_x = 0;
     static int init_mouse_y = 0;
     static CMNStatusBar status_bar;
+    static HWND layerWnd = NULL;
 
     switch (message)                  /* handle the messages */
     {
         case WM_CREATE:
             menu = GetMenu(hwnd);
+
+            // Create the status bar
             status_bar.InitBar(hwnd, 0, GetModuleHandle(NULL), 4);
             status_bar.UpdateText(0, "Status text");
+
+            // Create the side layers window
+            layerWnd = App_CreateLayersWindow(hwnd);
+            if(layerWnd == NULL)
+            {
+                exit(-1);
+            }
+
         break;
         case WM_DESTROY:
             PostQuitMessage (0);       /* send a WM_QUIT to the message queue */
             break;
         case WM_SIZE:
-            status_bar.ResizeBar();
+            {
+                RECT rectWnd;
+                GetClientRect(hwnd, &rectWnd);
+                MoveWindow(layerWnd, rectWnd.right - layersWidth, 0, layersWidth, rectWnd.bottom - 20, TRUE);
+                status_bar.ResizeBar();
+            }
             break;
         /*
         case WM_PAINT:
         {
             ///resize the window without effect the shape (resize and draw
-            Resize(hwnd, szFileBuffer,  img_scale,  origin_x, origin_y);
+            Resize(hwnd, szGerberBuffer,  img_scale,  origin_x, origin_y);
 
             //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
             // In the examples the PAINTSTRUCT and HDC are declared inside the WM_PAINT message. See if this is disadvantageous in some way.
@@ -173,10 +199,10 @@ LRESULT CALLBACK WindowProcedure (HWND hwnd, UINT message, WPARAM wParam, LPARAM
 			HDC hdc = BeginPaint(hwnd, &ps);
 			// All painting occurs here, between BeginPaint and EndPaint.
 			//FillRect(hdc, &ps.rcPaint, (HBRUSH)(COLOR_WINDOW + 1));
-			if(szFileBuffer)
+			if(szGerberBuffer)
             {
                 ///pass the scale_factor,  offset_x, offset_y to the function
-                //draw(hwnd, szFileBuffer, img_scale,  origin_x, origin_y);
+                //draw(hwnd, szGerberBuffer, img_scale,  origin_x, origin_y);
             }
 			EndPaint(hwnd, &ps);
         }
@@ -189,7 +215,7 @@ LRESULT CALLBACK WindowProcedure (HWND hwnd, UINT message, WPARAM wParam, LPARAM
             init_mouse_y = GET_Y_LPARAM(lParam);
             printf("\nLeft mouse clicked\n");
 
-            //printf(szFileBuffer);
+            //printf(szGerberBuffer);
         }
         break;
         case WM_LBUTTONUP:
@@ -247,72 +273,7 @@ LRESULT CALLBACK WindowProcedure (HWND hwnd, UINT message, WPARAM wParam, LPARAM
                 break;
             case ID_OPEN:
                 {
-                    // Process the open file command
-                    #warning "The constant bellow for file title is a place holder and should be replaced"
-                    OPENFILENAMEW ofn;       // common dialog box structure
-                    WCHAR szFile[MAX_PATH];      // buffer for file name
-                    WCHAR szFileTitle[256];
-
-                    // Initialize OPENFILENAME
-                    ZeroMemory(&ofn, sizeof(ofn));
-                    ofn.lStructSize = sizeof(ofn);
-                    ofn.hwndOwner = hwnd;
-                    ofn.lpstrFile = szFile;
-                    // Set lpstrFile[0] to '\0' so that GetOpenFileName does not
-                    // use the contents of szFile to initialize itself.
-                    ofn.lpstrFile[0] = L'\0';
-                    ofn.nMaxFile = sizeof(szFile);
-                    ofn.lpstrFilter = L"All\0*.*\0Text (.txt)\0*.TXT\0Gerber (.gbr, .gb)\0*.gbr;*.gb\0Image (.bmp)\0*.bmp\0"; // The file type filters
-                    ofn.nFilterIndex = 3; // Index of default filter (starting from 1), in this case 3 refers to Gerber files
-                    ofn.lpstrFileTitle = szFileTitle;
-                    ofn.nMaxFileTitle = 10;
-                    ofn.lpstrInitialDir = L"Documents";
-                    ofn.Flags = OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST | OFN_HIDEREADONLY;
-
-                    printf("\nStarting open file dialog box\n");
-
-                    // Display the Open dialog box.
-                    if (GetOpenFileNameW(&ofn)==TRUE)
-                    {
-                        wcscpy_s(szImageFile, MAX_PATH, szFile);
-                        MessageBoxW(hwnd, szImageFile, L"File Opened Successfully", MB_OK | MB_ICONINFORMATION);
-                        // Open file to get information
-                        HANDLE hfile = CreateFileW(szImageFile, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
-                        if(hfile)
-                        {
-                            DWORD fileSize = GetFileSize(hfile, NULL);
-                            if(szFileBuffer != NULL)
-                                delete[] szFileBuffer;
-                            szFileBuffer = new CHAR[fileSize+1];    // Extra character to insert a 0 in case the file chosen is not null terminated
-                            DWORD bytesRead = 0;
-                            if(ReadFile(hfile, szFileBuffer, fileSize, &bytesRead, NULL))
-                            {
-                                printf("\nFile read successfully\n");
-                                if(bytesRead > fileSize)
-                                {
-                                    printf("\nERROR: Number of bytes read is more than the maximum allowed!\n");
-                                }
-                                szFileBuffer[fileSize]= 0;  // Safe null terminator
-                                EnableMenuItem(menu, ID_MAXCPR, MF_ENABLED);
-                            }
-                            else
-                            {
-                                MessageBox(NULL, "Failed to read file", "Error", MB_OK | MB_ICONERROR);
-                                delete[] szFileBuffer;
-                            }
-                        }
-                        else
-                        {
-                            MessageBox(NULL, "Failed to create file handle", "Error", MB_OK | MB_ICONERROR);
-                        }
-
-                        // Invalidate window to force it to completely redraw
-                        InvalidateRect(hwnd, NULL, FALSE);
-                    }
-                    else
-                    {
-                        MessageBox(NULL, "Failed to open file", "Error", MB_OK | MB_ICONERROR);
-                    }
+                    App_OpenFile(hwnd);
                 }
                 break;
                 case ID_SAVE:
@@ -320,11 +281,11 @@ LRESULT CALLBACK WindowProcedure (HWND hwnd, UINT message, WPARAM wParam, LPARAM
                 break;
                 case ID_MAXCPR:
 
-                    if(szFileBuffer)
+                    if(szGerberBuffer)
                     {
                         DlgStrct_MaxCopper result;
                         printf("Result address: %x\n", (&result));
-                        if(DialogBoxParam(GetModuleHandle(NULL), MAKEINTRESOURCE(IDD_MAXCPR), hwnd, (DLGPROC)DlgProc_MaxCopper, (LPARAM)(&result)) == IDOK)
+                        if(DialogBoxParam(GetModuleHandle(NULL), MAKEINTRESOURCE(IDD_MAXCPR), hwnd, (DLGPROC)DlgProc_MaxCopper, (LPARAM)(&result)) == ID_OK)
                         {
                             if(!result.valid)
                             {
@@ -338,7 +299,7 @@ LRESULT CALLBACK WindowProcedure (HWND hwnd, UINT message, WPARAM wParam, LPARAM
                         }
 
                         MessageBox(hwnd, "Generation of Max-Copper will start. Press OK to continue", "Info", MB_OK | MB_ICONINFORMATION);
-                        DrawGerberOnBitmab(hwnd, szFileBuffer, NULL, NULL, NULL, NULL, NULL);
+                        DrawGerberOnBitmab(hwnd, szGerberBuffer, NULL, NULL, NULL, NULL, NULL);
                         PixelMatrix pm(bitmapObject.GetWidth(), bitmapObject.GetHeight());
                         for(int i = 0; i < bitmapObject.GetWidth(); i++)
                         {

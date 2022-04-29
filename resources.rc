@@ -13,19 +13,24 @@
 //
 // Menu resources
 //
-LANGUAGE 0, SUBLANG_NEUTRAL
+LANGUAGE LANG_NEUTRAL, SUBLANG_NEUTRAL
 RSRC_MENU MENU
 {
     POPUP "&File"
     {
         MENUITEM "&New", ID_EXIT, GRAYED
         MENUITEM SEPARATOR
-        MENUITEM "&Open", ID_OPEN
+        MENUITEM "&Project Wizard", 0
         MENUITEM SEPARATOR
-        MENUITEM "&Save", ID_SAVE
+        MENUITEM "&Open Gerber File", ID_OPEN
+        MENUITEM "&Open Copper Image", ID_OPENCOPPER
+        MENUITEM "&Open Isolation Image", ID_OPENTRACE
+        MENUITEM SEPARATOR
+        MENUITEM "&Save", ID_SAVE, GRAYED
         MENUITEM "&Save As", ID_SAVE, GRAYED
         MENUITEM SEPARATOR
         MENUITEM "&Exit", ID_EXIT
+        MENUITEM SEPARATOR
     }
     POPUP "&Edit"
     {
@@ -39,21 +44,21 @@ RSRC_MENU MENU
 //
 // Dialog resources
 //
-LANGUAGE 0, SUBLANG_NEUTRAL
+LANGUAGE LANG_NEUTRAL, SUBLANG_NEUTRAL
 IDD_MAXCPR DIALOG 0, 0, 186, 154
 STYLE DS_3DLOOK | DS_CENTER | DS_MODALFRAME | DS_SHELLFONT | WS_CAPTION | WS_VISIBLE | WS_POPUP | WS_SYSMENU
 CAPTION "Generate Max-Copper Trace Path"
 FONT 8, "Ms Shell Dlg"
 {
     EDITTEXT        IDC_EDIT_ZBOT, 95, 82, 80, 14, ES_AUTOHSCROLL, WS_EX_LEFT
-    LTEXT           "Starting Z depth (pixels):", 0, 12, 58, 77, 9, SS_LEFT, WS_EX_LEFT
-    LTEXT           "Ending Z depth (pixels):", 0, 12, 84, 75, 9, SS_LEFT, WS_EX_LEFT
+    RTEXT           "Starting Z depth (pixels):", 0, 12, 58, 77, 9, SS_RIGHT, WS_EX_LEFT
+    RTEXT           "Ending Z depth (pixels):", 0, 14, 84, 75, 9, SS_RIGHT, WS_EX_LEFT
     GROUPBOX        "Options", 0, 7, 7, 172, 115, 0, WS_EX_LEFT
-    PUSHBUTTON      "Cancel", IDCANCEL, 127, 132, 50, 14, 0, WS_EX_LEFT
-    DEFPUSHBUTTON   "OK", IDOK, 67, 132, 50, 14, 0, WS_EX_LEFT
+    PUSHBUTTON      "Cancel", ID_CANCEL, 127, 132, 50, 14, 0, WS_EX_LEFT
+    DEFPUSHBUTTON   "OK", ID_OK, 67, 132, 50, 14, 0, WS_EX_LEFT
     EDITTEXT        IDC_EDIT_PTOM, 95, 32, 80, 14, ES_AUTOHSCROLL, WS_EX_LEFT
     EDITTEXT        IDC_EDIT_ZTOP, 95, 56, 80, 14, ES_AUTOHSCROLL, WS_EX_LEFT
-    LTEXT           "Pixel Dimensions (mm):", 0, 12, 34, 72, 9, SS_LEFT, WS_EX_LEFT
+    RTEXT           "Pixel Dimensions (mm):", 0, 17, 33, 72, 11, SS_RIGHT, WS_EX_LEFT
 }
 
 
@@ -61,5 +66,5 @@ FONT 8, "Ms Shell Dlg"
 //
 // Icon resources
 //
-LANGUAGE 0, SUBLANG_NEUTRAL
+LANGUAGE LANG_NEUTRAL, SUBLANG_NEUTRAL
 IDI_ICON           ICON           "resources/pcb.ico"
