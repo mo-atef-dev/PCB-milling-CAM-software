@@ -121,9 +121,6 @@ int WINAPI WinMain (HINSTANCE hThisInstance,
     /* Make the window visible on the screen */
     ShowWindow (hwnd, nCmdShow);
 
-    ///create factory for drawing
-    creat_factory();
-
     /// Init common controls
     DOInitCommonControls();
 
