@@ -47,7 +47,7 @@
 	"Header.h"
 	<stdio.h>
 
-1651265245 source:c:\users\mohamed atef\documents\ee school\graduation project\windows software\pcbsoftware_v2\resources.rc
+1651523672 source:c:\users\mohamed atef\documents\ee school\graduation project\windows software\pcbsoftware_v2\resources.rc
 	<windows.h>
 	<commctrl.h>
 	<richedit.h>
@@ -64,18 +64,18 @@
 	<math.h>
 	<stdio.h>
 
-1651265846 source:c:\users\mohamed atef\documents\ee school\graduation project\windows software\pcbsoftware_v2\main.cpp
+1651524017 source:c:\users\mohamed atef\documents\ee school\graduation project\windows software\pcbsoftware_v2\main.cpp
 	<tchar.h>
 	<windows.h>
 	<windowsx.h>
 	<Commdlg.h>
-	"cmncontrols.h"
-	"maxCupper_loading.h"
+	"cmds.h"
 	"tracebmp.h"
 	"tracecheck.h"
 	"app.h"
 	"resource.h"
-	"Header.h"
+	"cmncontrols.h"
+	"maxCupper_loading.h"
 	<stdio.h>
 
 1638998747 source:d:\books\faculty\4th\project\v1\v2\pcbsoftware_v2\main.cpp
@@ -109,7 +109,7 @@
 1650901435 source:c:\users\mohamed atef\documents\ee school\graduation project\windows software\pcbsoftware_v2\cmncontrols.cpp
 	"cmncontrols.h"
 
-1650930908 source:c:\users\mohamed atef\documents\ee school\graduation project\windows software\pcbsoftware_v2\tracebmp.cpp
+1651277800 source:c:\users\mohamed atef\documents\ee school\graduation project\windows software\pcbsoftware_v2\tracebmp.cpp
 	"tracebmp.h"
 
 1650913621 c:\users\mohamed atef\documents\ee school\graduation project\windows software\pcbsoftware_v2\tracebmp.h
@@ -149,23 +149,37 @@
 	<stdexcept>
 	<iostream>
 
-1646836907 source:c:\users\mohamed atef\documents\ee school\graduation project\windows software\pcbsoftware_v2\tracecheck.cpp
+1651402553 source:c:\users\mohamed atef\documents\ee school\graduation project\windows software\pcbsoftware_v2\tracecheck.cpp
 	"tracecheck.h"
 
 1646434105 c:\users\mohamed atef\documents\ee school\graduation project\windows software\pcbsoftware_v2\tracecheck.h
 	"tracebmp.h"
 	<cstdlib>
 
-1651265245 c:\users\mohamed atef\documents\ee school\graduation project\windows software\pcbsoftware_v2\resource.h
+1651524982 c:\users\mohamed atef\documents\ee school\graduation project\windows software\pcbsoftware_v2\resource.h
 
-1651267392 source:c:\users\mohamed atef\documents\ee school\graduation project\windows software\pcbsoftware_v2\app.cpp
+1651524458 source:c:\users\mohamed atef\documents\ee school\graduation project\windows software\pcbsoftware_v2\app.cpp
 	"app.h"
 
-1651265863 c:\users\mohamed atef\documents\ee school\graduation project\windows software\pcbsoftware_v2\app.h
+1651524082 c:\users\mohamed atef\documents\ee school\graduation project\windows software\pcbsoftware_v2\app.h
 	<windows.h>
 	<stdlib.h>
 	<stdio.h>
 	<tchar.h>
 	<string>
 	"resource.h"
+	"bitmap_image.hpp"
+
+1651268740 source:c:\users\mohamed atef\documents\ee school\graduation project\windows software\pcbsoftware_v2\cmds.cpp
+	<iostream>
+	<fstream>
+	<cmath>
+	"cmds.h"
+	<string>
+	<bitset>
+	<string.h>
+	<vector>
+
+1651268175 c:\users\mohamed atef\documents\ee school\graduation project\windows software\pcbsoftware_v2\cmds.h
+	<vector>
 

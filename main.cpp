@@ -10,8 +10,7 @@
 #include <windows.h>
 #include <windowsx.h>
 #include <Commdlg.h>
-#include "cmncontrols.h"
-#include "maxCupper_loading.h"
+#include "cmds.h"
 #include "tracebmp.h"
 #include "tracecheck.h"
 #include "app.h"
@@ -24,7 +23,8 @@
 #define ZOOMOUT_FAC 0.9
 
 // Headers from other team members
-#include "Header.h"
+#include "cmncontrols.h"
+#include "maxCupper_loading.h"
 
 // Debug related header includes
 #if defined(DEBUG)
@@ -43,7 +43,18 @@ TCHAR szClassName[ ] = _T("PCBWindow");
 /* Global variable to hold opened file */
 WCHAR szGerberPath[MAX_PATH] = L"";
 CHAR* szGerberBuffer = NULL;
+
+WCHAR szDrillPath[MAX_PATH] = L"";
+CHAR* szDrillBuffer = NULL;
+
+WCHAR szBorderPath[MAX_PATH] = L"";
+CHAR* szBorderBuffer = NULL;
+
 string mmgString;
+
+WCHAR szTracePath[MAX_PATH] = L"";
+bitmap_image* pTraceImage;
+
 
 /* Global variables for drawing window coordinates */
 FLOAT origin_x = 0;
@@ -51,7 +62,8 @@ FLOAT origin_y = 0;
 FLOAT img_scale = 1;
 
 /* Constants for program parameters */
-int layersWidth = 300;
+const int layersWidth = 300;
+const float mmPerStep = 0.025;
 
 /* Other variables */
 HMENU menu;
@@ -176,7 +188,7 @@ LRESULT CALLBACK WindowProcedure (HWND hwnd, UINT message, WPARAM wParam, LPARAM
             {
                 RECT rectWnd;
                 GetClientRect(hwnd, &rectWnd);
-                MoveWindow(layerWnd, rectWnd.right - layersWidth, 0, layersWidth, rectWnd.bottom - 20, TRUE);
+                MoveWindow(layerWnd, rectWnd.right - layersWidth, 0, layersWidth, rectWnd.bottom - 22, TRUE);
                 status_bar.ResizeBar();
             }
             break;
@@ -211,8 +223,6 @@ LRESULT CALLBACK WindowProcedure (HWND hwnd, UINT message, WPARAM wParam, LPARAM
             init_mouse_x = GET_X_LPARAM(lParam);
             init_mouse_y = GET_Y_LPARAM(lParam);
             printf("\nLeft mouse clicked\n");
-
-            //printf(szGerberBuffer);
         }
         break;
         case WM_LBUTTONUP:
@@ -269,83 +279,247 @@ LRESULT CALLBACK WindowProcedure (HWND hwnd, UINT message, WPARAM wParam, LPARAM
                 PostMessage(hwnd, WM_CLOSE, 0, 0);
                 break;
             case ID_OPEN:
+                    App_OpenGbrFile(hwnd);
+                break;
+            case ID_OPENDRILL:
+                    App_OpenDrillFile(hwnd);
+                break;
+            case ID_OPENBORD:
+                    App_OpenBorderFile(hwnd);
+                break;
+            case ID_OPENTRACE:
+                    App_OpenTraceImage(hwnd);
+                break;
+            case ID_MMG:
                 {
-                    App_OpenFile(hwnd);
-                }
-                break;
-                case ID_SAVE:
-
-                break;
-                case ID_MAXCPR:
-
-                    if(szGerberBuffer)
+                    DlgStrct_MaxCopper result;
+                    printf("Result address: %x\n", (&result));
+                    if(DialogBoxParam(GetModuleHandle(NULL), MAKEINTRESOURCE(IDD_MAXCPR), hwnd, (DLGPROC)DlgProc_MaxCopper, (LPARAM)(&result)) == ID_OK)
                     {
-                        DlgStrct_MaxCopper result;
-                        printf("Result address: %x\n", (&result));
-                        if(DialogBoxParam(GetModuleHandle(NULL), MAKEINTRESOURCE(IDD_MAXCPR), hwnd, (DLGPROC)DlgProc_MaxCopper, (LPARAM)(&result)) == ID_OK)
+                        if(!result.valid)
                         {
-                            if(!result.valid)
-                            {
-                                MessageBox(NULL, "Please enter correct numbers in the text fields", "Error", MB_OK | MB_ICONERROR);
-                                return 0;
-                            }
-                        }
-                        else
-                        {
+                            MessageBox(NULL, "Please enter correct numbers in the text fields", "Error", MB_OK | MB_ICONERROR);
                             return 0;
                         }
-
-                        MessageBox(hwnd, "Generation of Max-Copper will start. Press OK to continue", "Info", MB_OK | MB_ICONINFORMATION);
-                        DrawGerberOnBitmab(hwnd, szGerberBuffer, NULL, NULL, NULL, NULL, NULL);
-                        PixelMatrix pm(bitmapObject.GetWidth(), bitmapObject.GetHeight());
-                        for(int i = 0; i < bitmapObject.GetWidth(); i++)
-                        {
-                            for(int j = 0; j < bitmapObject.GetHeight(); j++)
-                            {
-                                if(bitmapObject.isBlack(i, j))
-                                {
-                                    pm.SetPixelState(i, j, ISOLATE);
-                                }
-                            }
-                        }
-                        vector<Command> traceCmds = TracePixelMatrix(&pm, result.zTop, result.zBottom);
-                        mmgString = CommandsString(traceCmds, result.pixTomm, true);
-
-                        /// Create a file to store the resulting mmg commands
-
-                        HANDLE hfile = CreateFileW(L"./out.mmg", GENERIC_WRITE, FILE_SHARE_READ, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
-                        if(hfile != INVALID_HANDLE_VALUE)
-                        {
-                            DWORD writtenBytes;
-                            if(WriteFile(hfile, mmgString.c_str(), mmgString.size(), &writtenBytes, NULL))
-                            {
-                                printf("Successfully written the output file out.mmg with total amount of %d bytes written\n", writtenBytes);
-                            }
-                            else
-                            {
-                                printf("ERROR ## Failed to write the output file out.mmg with total amount of %d bytes written\n", writtenBytes);
-                            }
-                            CloseHandle(hfile);
-                        }
-                        else
-                        {
-                            printf("ERROR ## Failed to create the output mmg file\n");
-                        }
-
-                        ///
-
-                        /// Draw the output image
-
-                        bitmap_image img2(bitmapObject.GetWidth(), bitmapObject.GetHeight());
-                        img2.set_all_channels(255);
-                        DetailedCheck(traceCmds, img2).img.save_image("out.bmp");
-
-                        ///
                     }
                     else
                     {
-                        MessageBox(hwnd, "Please open a file first", "Error", MB_OK | MB_ICONERROR);
+                        return 0;
                     }
+
+                    PixelMatrix pm(pTraceImage->width(), pTraceImage->height());
+                    for(int i = 0; i < pTraceImage->width(); i++)
+                    {
+                        for(int j = 0; j < pTraceImage->height(); j++)
+                        {
+                            rgb_t color = pTraceImage->get_pixel(i, j);
+                            if(color.red != 255 || color.green != 255 || color.blue != 255)
+                            {
+                                pm.SetPixelState(i, j, ISOLATE);
+                            }
+                        }
+                    }
+                    vector<Command> traceCmds = TracePixelMatrix(&pm, result.zTop, result.zBottom);
+                    mmgString = CommandsString(traceCmds, result.pixTomm, true);
+
+                    /// Create a file to store the resulting mmg commands
+                    HANDLE hfile_mmg = CreateFileW(L"./out.mmg", GENERIC_WRITE, FILE_SHARE_READ, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
+                    if(hfile_mmg != INVALID_HANDLE_VALUE)
+                    {
+                        DWORD writtenBytes;
+                        if(WriteFile(hfile_mmg, mmgString.c_str(), mmgString.size(), &writtenBytes, NULL))
+                        {
+                            printf("Successfully written the output file out.mmg with total amount of %d bytes written\n", writtenBytes);
+                        }
+                        else
+                        {
+                            printf("ERROR ## Failed to write the output file out.mmg with total amount of %d bytes written\n", writtenBytes);
+                        }
+                        CloseHandle(hfile_mmg);
+                    }
+                    else
+                    {
+                        printf("ERROR ## Failed to create the output mmg file\n");
+                    }
+
+                    /// Draw the output image
+
+                    bitmap_image img2(pTraceImage->width(), pTraceImage->height());
+                    img2.set_all_channels(255);
+                    DetailedCheck(traceCmds, img2).img.save_image("out.bmp");
+
+                    ///
+
+                    printf("Finished mmg file creation\n");
+
+                    /// Create a file to store the resulting compressed commands
+                    /// Use the resulting mmg commands to generate the compressed 4 byte commands
+                    vector<CompressedCommand> cmpCmds(traceCmds.size());
+                    for(int i = 0; i < traceCmds.size(); i++)
+                    {
+                        cmpCmds[i].x = traceCmds[i].GetX()*result.pixTomm;
+                        cmpCmds[i].y = traceCmds[i].GetY()*result.pixTomm*-1;
+                        cmpCmds[i].z = traceCmds[i].GetZ()*result.pixTomm;
+                    }
+                    vector<OutCommand> outCmds = step_mov(cmpCmds, mmPerStep, mmPerStep, mmPerStep);
+
+                    // Convert the vector to a buffer
+                    int l = outCmds.size();
+                    __int8* outBuff = new __int8[l*4];
+                    for(int i = 0; i < l; i += 4)
+                    {
+                        outBuff[i] = outCmds[i/4].x;
+                        outBuff[i+1] = outCmds[i/4].y;
+                        outBuff[i+2] = outCmds[i/4].z;
+                        outBuff[i+3] = outCmds[i/4].acc;
+                    }
+
+                    HANDLE hfile_cmd = CreateFileW(L"./out.hex", GENERIC_WRITE, FILE_SHARE_READ, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
+                    if(hfile_cmd != INVALID_HANDLE_VALUE)
+                    {
+                        DWORD writtenBytes;
+                        if(WriteFile(hfile_cmd, outBuff, l*4, &writtenBytes, NULL))
+                        {
+                            printf("Successfully written the output file out.hex with total amount of %d bytes written\n", writtenBytes);
+                        }
+                        else
+                        {
+                            printf("ERROR ## Failed to write the output file out.hex with total amount of %d bytes written\n", writtenBytes);
+                        }
+                        CloseHandle(hfile_cmd);
+                    }
+                    else
+                    {
+                        printf("ERROR ## Failed to create the output hex file\n");
+                    }
+                    MessageBox(hwnd, "Successfully created files out.hex, out.mmg, and out.bmp", "Success", MB_OK | MB_ICONINFORMATION);
+                }
+                break;
+            case ID_MAXCPR:
+
+                if(!szDrillBuffer)
+                {
+                    if(MessageBox(hwnd, "No drill file is opened, do you want to continue?", "Warning", MB_YESNO | MB_ICONEXCLAMATION) != IDYES)
+                    {
+                        return 0;
+                    }
+                }
+
+                if(!szBorderBuffer)
+                {
+                    MessageBox(hwnd, "Please open a Gerber border layer file first", "Error", MB_OK | MB_ICONERROR);
+                    return 0;
+                }
+
+                if(szGerberBuffer)
+                {
+                    DlgStrct_MaxCopper result;
+                    printf("Result address: %x\n", (&result));
+                    if(DialogBoxParam(GetModuleHandle(NULL), MAKEINTRESOURCE(IDD_MAXCPR), hwnd, (DLGPROC)DlgProc_MaxCopper, (LPARAM)(&result)) == ID_OK)
+                    {
+                        if(!result.valid)
+                        {
+                            MessageBox(NULL, "Please enter correct numbers in the text fields", "Error", MB_OK | MB_ICONERROR);
+                            return 0;
+                        }
+                    }
+                    else
+                    {
+                        return 0;
+                    }
+
+                    MessageBox(hwnd, "Generation of Max-Copper will start. Press OK to continue", "Info", MB_OK | MB_ICONINFORMATION);
+                    DrawGerberOnBitmab(hwnd, szGerberBuffer, NULL, NULL, NULL, NULL, NULL);
+                    PixelMatrix pm(bitmapObject.GetWidth(), bitmapObject.GetHeight());
+                    for(int i = 0; i < bitmapObject.GetWidth(); i++)
+                    {
+                        for(int j = 0; j < bitmapObject.GetHeight(); j++)
+                        {
+                            if(bitmapObject.isBlack(i, j))
+                            {
+                                pm.SetPixelState(i, j, ISOLATE);
+                            }
+                        }
+                    }
+                    vector<Command> traceCmds = TracePixelMatrix(&pm, result.zTop, result.zBottom);
+                    mmgString = CommandsString(traceCmds, result.pixTomm, true);
+
+                    /// Create a file to store the resulting mmg commands
+                    HANDLE hfile_mmg = CreateFileW(L"./out.mmg", GENERIC_WRITE, FILE_SHARE_READ, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
+                    if(hfile_mmg != INVALID_HANDLE_VALUE)
+                    {
+                        DWORD writtenBytes;
+                        if(WriteFile(hfile_mmg, mmgString.c_str(), mmgString.size(), &writtenBytes, NULL))
+                        {
+                            printf("Successfully written the output file out.mmg with total amount of %d bytes written\n", writtenBytes);
+                        }
+                        else
+                        {
+                            printf("ERROR ## Failed to write the output file out.mmg with total amount of %d bytes written\n", writtenBytes);
+                        }
+                        CloseHandle(hfile_mmg);
+                    }
+                    else
+                    {
+                        printf("ERROR ## Failed to create the output mmg file\n");
+                    }
+
+                    /// Draw the output image
+
+                    bitmap_image img2(bitmapObject.GetWidth(), bitmapObject.GetHeight());
+                    img2.set_all_channels(255);
+                    DetailedCheck(traceCmds, img2).img.save_image("out.bmp");
+
+                    ///
+
+                    printf("Finished mmg file creation\n");
+
+                    /// Create a file to store the resulting compressed commands
+                    /// Use the resulting mmg commands to generate the compressed 4 byte commands
+                    vector<CompressedCommand> cmpCmds(traceCmds.size());
+                    for(int i = 0; i < traceCmds.size(); i++)
+                    {
+                        cmpCmds[i].x = traceCmds[i].GetX()*result.pixTomm;
+                        cmpCmds[i].y = traceCmds[i].GetY()*result.pixTomm*-1;
+                        cmpCmds[i].z = traceCmds[i].GetZ()*result.pixTomm;
+                    }
+                    vector<OutCommand> outCmds = step_mov(cmpCmds, mmPerStep, mmPerStep, mmPerStep);
+
+                    // Convert the vector to a buffer
+                    int l = outCmds.size();
+                    __int8* outBuff = new __int8[l*4];
+                    for(int i = 0; i < l; i += 4)
+                    {
+                        outBuff[i] = outCmds[i/4].x;
+                        outBuff[i+1] = outCmds[i/4].y;
+                        outBuff[i+2] = outCmds[i/4].z;
+                        outBuff[i+3] = outCmds[i/4].acc;
+                    }
+
+                    HANDLE hfile_cmd = CreateFileW(L"./out.hex", GENERIC_WRITE, FILE_SHARE_READ, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
+                    if(hfile_cmd != INVALID_HANDLE_VALUE)
+                    {
+                        DWORD writtenBytes;
+                        if(WriteFile(hfile_cmd, outBuff, l*4, &writtenBytes, NULL))
+                        {
+                            printf("Successfully written the output file out.hex with total amount of %d bytes written\n", writtenBytes);
+                        }
+                        else
+                        {
+                            printf("ERROR ## Failed to write the output file out.hex with total amount of %d bytes written\n", writtenBytes);
+                        }
+                        CloseHandle(hfile_cmd);
+                    }
+                    else
+                    {
+                        printf("ERROR ## Failed to create the output hex file\n");
+                    }
+                    ///
+                }
+                else
+                {
+                    MessageBox(hwnd, "Please open a Gerber copper layer file first", "Error", MB_OK | MB_ICONERROR);
+                }
 
                 break;
             }

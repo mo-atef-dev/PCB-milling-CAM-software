@@ -22,12 +22,15 @@ RSRC_MENU MENU
         MENUITEM SEPARATOR
         MENUITEM "&Project Wizard", 0
         MENUITEM SEPARATOR
-        MENUITEM "&Open Gerber File", ID_OPEN
-        MENUITEM "&Open Copper Image", ID_OPENCOPPER
-        MENUITEM "&Open Isolation Image", ID_OPENTRACE
+        MENUITEM "&Open Gerber Copper File", ID_OPEN
+        MENUITEM "Open Gerber Drill File", ID_OPENDRILL
+        MENUITEM "Open Gerber Border File", ID_OPENBORD
+        MENUITEM SEPARATOR
+        MENUITEM "Open Copper Image", ID_OPENCOPPER
+        MENUITEM "Open Isolation Image", ID_OPENTRACE
         MENUITEM SEPARATOR
         MENUITEM "&Save", ID_SAVE, GRAYED
-        MENUITEM "&Save As", ID_SAVE, GRAYED
+        MENUITEM "Save As", ID_SAVE, GRAYED
         MENUITEM SEPARATOR
         MENUITEM "&Exit", ID_EXIT
         MENUITEM SEPARATOR
@@ -35,7 +38,7 @@ RSRC_MENU MENU
     POPUP "&Edit"
     {
         MENUITEM "&Generate MaxCopper", ID_MAXCPR, GRAYED
-        MENUITEM "&Generate G-Code", ID_GCODE, GRAYED
+        MENUITEM "&Generate Trace MMG", ID_MMG, GRAYED
     }
 }
 
@@ -51,8 +54,8 @@ CAPTION "Generate Max-Copper Trace Path"
 FONT 8, "Ms Shell Dlg"
 {
     EDITTEXT        IDC_EDIT_ZBOT, 95, 82, 80, 14, ES_AUTOHSCROLL, WS_EX_LEFT
-    RTEXT           "Starting Z depth (pixels):", 0, 12, 58, 77, 9, SS_RIGHT, WS_EX_LEFT
-    RTEXT           "Ending Z depth (pixels):", 0, 14, 84, 75, 9, SS_RIGHT, WS_EX_LEFT
+    RTEXT           "Starting Z depth (mm):", 0, 19, 58, 70, 9, SS_RIGHT, WS_EX_LEFT
+    RTEXT           "Ending Z depth (mm):", 0, 21, 84, 68, 9, SS_RIGHT, WS_EX_LEFT
     GROUPBOX        "Options", 0, 7, 7, 172, 115, 0, WS_EX_LEFT
     PUSHBUTTON      "Cancel", ID_CANCEL, 127, 132, 50, 14, 0, WS_EX_LEFT
     DEFPUSHBUTTON   "OK", ID_OK, 67, 132, 50, 14, 0, WS_EX_LEFT

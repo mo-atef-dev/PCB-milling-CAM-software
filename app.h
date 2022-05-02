@@ -7,6 +7,7 @@
 #include <tchar.h>
 #include <string>
 #include "resource.h"
+#include "bitmap_image.hpp"
 
 using namespace std;
 
@@ -16,6 +17,16 @@ using namespace std;
 /// File global variables
 extern WCHAR szGerberPath[];
 extern CHAR* szGerberBuffer;
+
+extern WCHAR szDrillPath[MAX_PATH];
+extern CHAR* szDrillBuffer;
+
+extern WCHAR szBorderPath[MAX_PATH];
+extern CHAR* szBorderBuffer;
+
+extern WCHAR szTracePath[];
+extern bitmap_image* pTraceImage;
+
 extern string mmgString;
 extern HMENU menu;
 
@@ -23,7 +34,13 @@ extern HMENU menu;
 int App_Initialize(HINSTANCE hThisInstance);
 HWND App_CreateLayersWindow(HWND hwnd);
 int App_ResizeLayersWindow(HWND hwndParent);
-int App_OpenFile(HWND hwnd);
+
+int App_OpenGbrFile(HWND hwnd);
+int App_OpenDrillFile(HWND hwnd);
+int App_OpenBorderFile(HWND hwnd);
+int App_OpenTraceImage(HWND hwnd);
+int App_OpenCopperImage(HWND hwnd);
+int App_OpenFile(HWND hwnd, WCHAR* szFilePath, CHAR* &FileBuffer, BOOL LoadFile, const LPCWSTR lpstrFilter, DWORD nFilterIndex);
 
 /// Proc structures
 /// These structures represent data communication between the proc functions and the caller

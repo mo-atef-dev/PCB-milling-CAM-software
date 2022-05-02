@@ -48,17 +48,16 @@
 			<Add library="windowscodecs" />
 		</Linker>
 		<Unit filename="BMP.h" />
-		<Unit filename="Header.h" />
-		<Unit filename="Source.cpp" />
 		<Unit filename="app.cpp" />
 		<Unit filename="app.h" />
 		<Unit filename="bitmap_image.hpp" />
+		<Unit filename="cmds.cpp" />
+		<Unit filename="cmds.h" />
 		<Unit filename="cmncontrols.cpp" />
 		<Unit filename="cmncontrols.h" />
 		<Unit filename="main.cpp" />
 		<Unit filename="maxCupper_loading.h" />
 		<Unit filename="resource.h" />
-		<Unit filename="resources.h" />
 		<Unit filename="resources.rc">
 			<Option compilerVar="WINDRES" />
 		</Unit>

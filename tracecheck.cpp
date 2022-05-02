@@ -50,7 +50,7 @@ CheckResult DetailedCheck(vector<Command> commands, bitmap_image img)
                     x += GET_DIR((*i).GetX(), x);
                     y += GET_DIR((*i).GetY(), y);
                     z += GET_DIR((*i).GetZ(), z);
-                    if(z == END_DEPTH)
+                    if(z < 0)
                     {
                         r.img.set_pixel(x, y, (r.nLineTo%2)*255, 0, 0);
                     }
@@ -71,7 +71,7 @@ CheckResult DetailedCheck(vector<Command> commands, bitmap_image img)
                 }
 
                 z += GET_DIR((*i).GetZ(), z);
-                if(z == END_DEPTH)
+                if(z < 0)
                 {
                     r.img.set_pixel(x, y, (r.nLineTo%2)*255, 0, 0);
                 }
