@@ -26,14 +26,13 @@ RSRC_MENU MENU
         MENUITEM "Open Gerber Drill File", ID_OPENDRILL
         MENUITEM "Open Gerber Border File", ID_OPENBORD
         MENUITEM SEPARATOR
-        MENUITEM "Open Copper Image", ID_OPENCOPPER
+        MENUITEM "Open Copper Image", ID_OPENCOPPER, GRAYED
         MENUITEM "Open Isolation Image", ID_OPENTRACE
         MENUITEM SEPARATOR
         MENUITEM "&Save", ID_SAVE, GRAYED
         MENUITEM "Save As", ID_SAVE, GRAYED
         MENUITEM SEPARATOR
         MENUITEM "&Exit", ID_EXIT
-        MENUITEM SEPARATOR
     }
     POPUP "&Edit"
     {

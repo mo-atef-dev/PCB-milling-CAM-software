@@ -1,39 +1,65 @@
 #include "app.h"
 
-static TCHAR szChildClassName[ ] = _T("LayerWindow");
+static TCHAR szLayersClassName[ ] = _T("LayerWindow");
+static TCHAR szDrawClassName[ ] = _T("DrawWindow");
 
 int App_Initialize(HINSTANCE hThisInstance)
 {
-    WNDCLASSEX childcl;
+    WNDCLASSEX drawCl;
+    WNDCLASSEX layerCl;
 
     /* The child window structure */
-    childcl.hInstance = hThisInstance;
-    childcl.lpszClassName = szChildClassName;
-    childcl.lpfnWndProc = WinProc_Layers;
-    childcl.style = CS_DBLCLKS;
-    childcl.cbSize = sizeof(WNDCLASSEX);
+    layerCl.hInstance = hThisInstance;
+    layerCl.lpszClassName = szLayersClassName;
+    layerCl.lpfnWndProc = WinProc_Layers;
+    layerCl.style = CS_DBLCLKS;
+    layerCl.cbSize = sizeof(WNDCLASSEX);
 
-    childcl.hIcon = LoadIcon (GetModuleHandle(NULL), MAKEINTRESOURCE(IDI_ICON));
-    childcl.hIconSm = LoadIcon (GetModuleHandle(NULL), MAKEINTRESOURCE(IDI_ICON));
-    childcl.hCursor = LoadCursor (NULL, IDC_ARROW);
-    childcl.lpszMenuName = MAKEINTRESOURCE(RSRC_MENU);                 /* No menu */
-    childcl.cbClsExtra = 0;                      /* No extra bytes after the window class */
-    childcl.cbWndExtra = 0;                      /* structure or the window instance */
+    layerCl.hIcon = LoadIcon (GetModuleHandle(NULL), MAKEINTRESOURCE(IDI_ICON));
+    layerCl.hIconSm = LoadIcon (GetModuleHandle(NULL), MAKEINTRESOURCE(IDI_ICON));
+    layerCl.hCursor = LoadCursor (NULL, IDC_ARROW);
+    layerCl.lpszMenuName = MAKEINTRESOURCE(RSRC_MENU);                 /* No menu */
+    layerCl.cbClsExtra = 0;                      /* No extra bytes after the window class */
+    layerCl.cbWndExtra = 0;                      /* structure or the window instance */
     /* Use Windows's default color as the background of the window */
-    childcl.hbrBackground = (HBRUSH) COLOR_WINDOW;
+    layerCl.hbrBackground = (HBRUSH) COLOR_WINDOW;
 
-    if(!RegisterClassEx(&childcl))
+    if(!RegisterClassEx(&layerCl))
     {
         MessageBox(NULL, "Failed to register layers child window class", "ERROR", MB_OK | MB_ICONERROR);
         return 1;
     }
+
+     /* The child window structure */
+    drawCl.hInstance = hThisInstance;
+    drawCl.lpszClassName = szDrawClassName;
+    drawCl.lpfnWndProc = WinProc_Layers;
+    drawCl.style = CS_DBLCLKS;
+    drawCl.cbSize = sizeof(WNDCLASSEX);
+
+    drawCl.hIcon = LoadIcon (GetModuleHandle(NULL), MAKEINTRESOURCE(IDI_ICON));
+    drawCl.hIconSm = LoadIcon (GetModuleHandle(NULL), MAKEINTRESOURCE(IDI_ICON));
+    drawCl.hCursor = LoadCursor (NULL, IDC_ARROW);
+    drawCl.lpszMenuName = MAKEINTRESOURCE(RSRC_MENU);                 /* No menu */
+    drawCl.cbClsExtra = 0;                      /* No extra bytes after the window class */
+    drawCl.cbWndExtra = 0;                      /* structure or the window instance */
+    /* Use Windows's default color as the background of the window */
+    drawCl.hbrBackground = CreateSolidBrush(RGB(200, 200, 200));
+
+    if(!RegisterClassEx(&drawCl))
+    {
+        MessageBox(NULL, "Failed to register drawing child window class", "ERROR", MB_OK | MB_ICONERROR);
+        return 1;
+    }
+
     return 0;
 }
+
 HWND App_CreateLayersWindow(HWND hwnd)
 {
     HWND cHwnd;
     cHwnd = CreateWindowEx(0,
-                           szChildClassName,
+                           szLayersClassName,
                            _T("Files"),
                            WS_CHILD | WS_BORDER,
                            100, 100, 100, 100,
@@ -51,9 +77,26 @@ HWND App_CreateLayersWindow(HWND hwnd)
     return cHwnd;
 }
 
-int App_ResizeLayersWindow(HWND hwndParent)
+HWND App_CreateDrawingWindow(HWND hwnd)
 {
+    HWND cHwnd;
+    cHwnd = CreateWindowEx(0,
+                           szDrawClassName,
+                           _T("Files"),
+                           WS_CHILD | WS_BORDER,
+                           100, 100, 100, 100,
+                           hwnd,
+                           (HMENU) ID_CHILD_Layers,
+                           GetModuleHandle(NULL),
+                           NULL);
 
+    if(!cHwnd)
+    {
+        MessageBox(NULL, "Failed to show layers child window class", "ERROR", MB_OK | MB_ICONERROR);
+        return NULL;
+    }
+    ShowWindow(cHwnd, SW_SHOW);
+    return cHwnd;
 }
 
 BOOL CALLBACK DlgProc_MaxCopper(HWND hwndDlg, UINT message, WPARAM wParam, LPARAM lParam)

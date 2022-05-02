@@ -163,6 +163,7 @@ LRESULT CALLBACK WindowProcedure (HWND hwnd, UINT message, WPARAM wParam, LPARAM
     static int init_mouse_y = 0;
     static CMNStatusBar status_bar;
     static HWND layerWnd = NULL;
+    static HWND drawWnd = NULL;
 
     switch (message)                  /* handle the messages */
     {
@@ -175,7 +176,8 @@ LRESULT CALLBACK WindowProcedure (HWND hwnd, UINT message, WPARAM wParam, LPARAM
 
             // Create the side layers window
             layerWnd = App_CreateLayersWindow(hwnd);
-            if(layerWnd == NULL)
+            drawWnd = App_CreateDrawingWindow(hwnd);
+            if(layerWnd == NULL || drawWnd == NULL)
             {
                 exit(-1);
             }
@@ -186,37 +188,17 @@ LRESULT CALLBACK WindowProcedure (HWND hwnd, UINT message, WPARAM wParam, LPARAM
             break;
         case WM_SIZE:
             {
+                /// Resize child windows
                 RECT rectWnd;
                 GetClientRect(hwnd, &rectWnd);
+                // Resize layers window
                 MoveWindow(layerWnd, rectWnd.right - layersWidth, 0, layersWidth, rectWnd.bottom - 22, TRUE);
+                // Resize drawing window
+                MoveWindow(drawWnd, 0, 0, rectWnd.right - layersWidth, rectWnd.bottom - 22, TRUE);
+                // Resize status bar
                 status_bar.ResizeBar();
             }
             break;
-        /*
-        case WM_PAINT:
-        {
-            ///resize the window without effect the shape (resize and draw
-            Resize(hwnd, szGerberBuffer,  img_scale,  origin_x, origin_y);
-
-            //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-            // In the examples the PAINTSTRUCT and HDC are declared inside the WM_PAINT message. See if this is disadvantageous in some way.
-            //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-            // Write code here for gerber version
-
-            PAINTSTRUCT ps;
-			HDC hdc = BeginPaint(hwnd, &ps);
-			// All painting occurs here, between BeginPaint and EndPaint.
-			//FillRect(hdc, &ps.rcPaint, (HBRUSH)(COLOR_WINDOW + 1));
-			if(szGerberBuffer)
-            {
-                ///pass the scale_factor,  offset_x, offset_y to the function
-                //draw(hwnd, szGerberBuffer, img_scale,  origin_x, origin_y);
-            }
-			EndPaint(hwnd, &ps);
-        }
-        break;
-        */
         case WM_LBUTTONDOWN:
         {
             bLButtonHold = TRUE;

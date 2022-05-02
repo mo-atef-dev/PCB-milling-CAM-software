@@ -32,8 +32,9 @@ extern HMENU menu;
 
 /// Global functions
 int App_Initialize(HINSTANCE hThisInstance);
+
 HWND App_CreateLayersWindow(HWND hwnd);
-int App_ResizeLayersWindow(HWND hwndParent);
+HWND App_CreateDrawingWindow(HWND hwnd);
 
 int App_OpenGbrFile(HWND hwnd);
 int App_OpenDrillFile(HWND hwnd);
@@ -55,5 +56,6 @@ struct DlgStrct_MaxCopper
 /// Proc functions
 BOOL CALLBACK DlgProc_MaxCopper(HWND hwndDlg, UINT message, WPARAM wParam, LPARAM lParam);
 LRESULT CALLBACK WinProc_Layers(HWND, UINT, WPARAM, LPARAM);
+LRESULT CALLBACK WinProc_Draw(HWND, UINT, WPARAM, LPARAM);
 
 #endif // APP_H_INCLUDED
