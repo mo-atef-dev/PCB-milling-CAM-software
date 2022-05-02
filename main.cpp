@@ -293,7 +293,6 @@ LRESULT CALLBACK WindowProcedure (HWND hwnd, UINT message, WPARAM wParam, LPARAM
             case ID_MMG:
                 {
                     DlgStrct_MaxCopper result;
-                    printf("Result address: %x\n", (&result));
                     if(DialogBoxParam(GetModuleHandle(NULL), MAKEINTRESOURCE(IDD_MAXCPR), hwnd, (DLGPROC)DlgProc_MaxCopper, (LPARAM)(&result)) == ID_OK)
                     {
                         if(!result.valid)
@@ -414,7 +413,6 @@ LRESULT CALLBACK WindowProcedure (HWND hwnd, UINT message, WPARAM wParam, LPARAM
                 if(szGerberBuffer)
                 {
                     DlgStrct_MaxCopper result;
-                    printf("Result address: %x\n", (&result));
                     if(DialogBoxParam(GetModuleHandle(NULL), MAKEINTRESOURCE(IDD_MAXCPR), hwnd, (DLGPROC)DlgProc_MaxCopper, (LPARAM)(&result)) == ID_OK)
                     {
                         if(!result.valid)
@@ -429,7 +427,7 @@ LRESULT CALLBACK WindowProcedure (HWND hwnd, UINT message, WPARAM wParam, LPARAM
                     }
 
                     MessageBox(hwnd, "Generation of Max-Copper will start. Press OK to continue", "Info", MB_OK | MB_ICONINFORMATION);
-                    DrawGerberOnBitmab(hwnd, szGerberBuffer, NULL, NULL, NULL, NULL, NULL);
+                    DrawGerberOnBitmab(hwnd, szGerberBuffer, szBorderBuffer, szDrillBuffer, NULL, NULL, NULL, NULL, NULL);
                     PixelMatrix pm(bitmapObject.GetWidth(), bitmapObject.GetHeight());
                     for(int i = 0; i < bitmapObject.GetWidth(); i++)
                     {

@@ -1556,6 +1556,8 @@ void DrawBorders(
 ID2D1Bitmap* DrawGerberOnBitmab(
     HWND handeller_to_window,
     char* str,
+    char* profileStr,
+    char* DrillsStr,
     ID2D1Factory* pFactory,
     ID2D1RenderTarget* pWicRenderTarget,
     IWICImagingFactory* wicFactory,
@@ -1588,7 +1590,8 @@ ID2D1Bitmap* DrawGerberOnBitmab(
     float scale = 10;
     float Shift_X=0;
     float Shift_Y = 0;
-    char profileStr[] = "G04 EAGLE Gerber RS-274X export* G75* %MOMM*% %FSLAX34Y34*% %LPD*% %IN*% %IPPOS*% %AMOC8* 5,1,8,0,0,1.08239X$1,22.5*% G01* %ADD10C,0.254000*% D10* X0Y0D02* X1000000Y0D01* X1000000Y800000D01* X0Y800000D01* X0Y0D01* X626110Y339820D02* X626039Y338741D01* X625898Y337669D01* X625687Y336609D01* X625408Y335565D01* X625060Y334541D01* X624646Y333543D01* X624168Y332573D01* X623628Y331637D01* X623027Y330738D01* X622369Y329881D01* X621657Y329068D01* X620892Y328304D01* X620079Y327591D01* X619222Y326933D01* X618323Y326332D01* X617387Y325792D01* X616417Y325314D01* X615419Y324900D01* X614395Y324552D01* X613351Y324273D01* X612291Y324062D01* X611219Y323921D01* X610140Y323850D01* X609060Y323850D01* X607981Y323921D01* X606909Y324062D01* X605849Y324273D01* X604805Y324552D01* X603781Y324900D01* X602783Y325314D01* X601813Y325792D01* X600877Y326332D01* X599978Y326933D01* X599121Y327591D01* X598308Y328304D01* X597544Y329068D01* X596831Y329881D01* X596173Y330738D01* X595572Y331637D01* X595032Y332573D01* X594554Y333543D01* X594140Y334541D01* X593792Y335565D01* X593513Y336609D01* X593302Y337669D01* X593161Y338741D01* X593090Y339820D01* X593090Y340900D01* X593161Y341979D01* X593302Y343051D01* X593513Y344111D01* X593792Y345155D01* X594140Y346179D01* X594554Y347177D01* X595032Y348147D01* X595572Y349083D01* X596173Y349982D01* X596831Y350839D01* X597544Y351652D01* X598308Y352417D01* X599121Y353129D01* X599978Y353787D01* X600877Y354388D01* X601813Y354928D01* X602783Y355406D01* X603781Y355820D01* X604805Y356168D01* X605849Y356447D01* X606909Y356658D01* X607981Y356799D01* X609060Y356870D01* X610140Y356870D01* X611219Y356799D01* X612291Y356658D01* X613351Y356447D01* X614395Y356168D01* X615419Y355820D01* X616417Y355406D01* X617387Y354928D01* X618323Y354388D01* X619222Y353787D01* X620079Y353129D01* X620892Y352417D01* X621657Y351652D01* X622369Y350839D01* X623027Y349982D01* X623628Y349083D01* X624168Y348147D01* X624646Y347177D01* X625060Y346179D01* X625408Y345155D01* X625687Y344111D01* X625898Y343051D01* X626039Y341979D01* X626110Y340900D01* X626110Y339820D01* M02*";
+    //char profileStr[] = "G04 EAGLE Gerber RS-274X export* G75* %MOMM*% %FSLAX34Y34*% %LPD*% %IN*% %IPPOS*% %AMOC8* 5,1,8,0,0,1.08239X$1,22.5*% G01* %ADD10C,0.254000*% D10* X0Y0D02* X1000000Y0D01* X1000000Y800000D01* X0Y800000D01* X0Y0D01* X626110Y339820D02* X626039Y338741D01* X625898Y337669D01* X625687Y336609D01* X625408Y335565D01* X625060Y334541D01* X624646Y333543D01* X624168Y332573D01* X623628Y331637D01* X623027Y330738D01* X622369Y329881D01* X621657Y329068D01* X620892Y328304D01* X620079Y327591D01* X619222Y326933D01* X618323Y326332D01* X617387Y325792D01* X616417Y325314D01* X615419Y324900D01* X614395Y324552D01* X613351Y324273D01* X612291Y324062D01* X611219Y323921D01* X610140Y323850D01* X609060Y323850D01* X607981Y323921D01* X606909Y324062D01* X605849Y324273D01* X604805Y324552D01* X603781Y324900D01* X602783Y325314D01* X601813Y325792D01* X600877Y326332D01* X599978Y326933D01* X599121Y327591D01* X598308Y328304D01* X597544Y329068D01* X596831Y329881D01* X596173Y330738D01* X595572Y331637D01* X595032Y332573D01* X594554Y333543D01* X594140Y334541D01* X593792Y335565D01* X593513Y336609D01* X593302Y337669D01* X593161Y338741D01* X593090Y339820D01* X593090Y340900D01* X593161Y341979D01* X593302Y343051D01* X593513Y344111D01* X593792Y345155D01* X594140Y346179D01* X594554Y347177D01* X595032Y348147D01* X595572Y349083D01* X596173Y349982D01* X596831Y350839D01* X597544Y351652D01* X598308Y352417D01* X599121Y353129D01* X599978Y353787D01* X600877Y354388D01* X601813Y354928D01* X602783Y355406D01* X603781Y355820D01* X604805Y356168D01* X605849Y356447D01* X606909Y356658D01* X607981Y356799D01* X609060Y356870D01* X610140Y356870D01* X611219Y356799D01* X612291Y356658D01* X613351Y356447D01* X614395Y356168D01* X615419Y355820D01* X616417Y355406D01* X617387Y354928D01* X618323Y354388D01* X619222Y353787D01* X620079Y353129D01* X620892Y352417D01* X621657Y351652D01* X622369Y350839D01* X623027Y349982D01* X623628Y349083D01* X624168Y348147D01* X624646Y347177D01* X625060Y346179D01* X625408Y345155D01* X625687Y344111D01* X625898Y343051D01* X626039Y341979D01* X626110Y340900D01* X626110Y339820D01* M02*";
+    //char profileStr[] = "%TF.GenerationSoftware,KiCad,Pcbnew,(5.1.12)-1*% %TF.CreationDate,2022-04-23T11:54:43+02:00*% %TF.ProjectId,test,74657374-2e6b-4696-9361-645f70636258,rev?*% %TF.SameCoordinates,Original*% %TF.FileFunction,Profile,NP*% %FSLAX46Y46*% G04 Gerber Fmt 4.6, Leading zero omitted, Abs format (unit mm)* G04 Created by KiCad (PCBNEW (5.1.12)-1) date 2022-04-23 11:54:43* %MOMM*% %LPD*% G01* G04 APERTURE LIST* %TA.AperFunction,Profile*% %ADD10C,0.050000*% %TD*% G04 APERTURE END LIST* D10* X19050000Y-72390000D02* X95250000Y-72390000D01* X19050000Y-13970000D02* X19050000Y-72390000D01* X95250000Y-13970000D02* X19050000Y-13970000D01* X95250000Y-72390000D02* X95250000Y-13970000D01* M02*";
     GetWidthHeight(handeller_to_window, profileStr, size, coord_digits_x, coord_digits_y, scale, puiWidth, puiHeight, Shift_X, Shift_Y);
 
     if (pBitmap == NULL)
@@ -1686,9 +1689,9 @@ ID2D1Bitmap* DrawGerberOnBitmab(
             //for Obround
             else if (current_shape->type == 3)
             {
-                //string_to_float(handeller_to_window,str, i, shape_x, shape_y);
+                string_to_float(size, str, i, coord_digits_x, coord_digits_y, shape_x, shape_y, scale, Shift_X, Shift_Y);
+                Draw_circle(shape_x, shape_y, pWicRenderTarget, current_shape, pWicBrush);
                 //draw_Obround(handeller_to_window);
-
             }
             //for Polygon
             else if (current_shape->type == 4)
@@ -1827,75 +1830,78 @@ ID2D1Bitmap* DrawGerberOnBitmab(
             }
             else if (str[i + 5] == 'O')
             {
-                float x = 0;
-                float y = 0;
-                float hole_diameter = 0;
+            float x = 0;
+            float y = 0;
+            float hole_diameter = 0;
 
-                int j = i + 7;
-                //first number (x)
-                while (str[j] != '.')
-                {
-                    j++;
-                }
-                int dot_index = j;
-                int num = 0;
-                float result = 0;
-                int exponent = 0;
-                while (str[j] != ',')
-                {
-                    num = (float)(str[j] - '0') * pow(10, exponent);
-                    result = result + num;
-                    j--;
-                    exponent++;
-                }
-                exponent = -1;
-                j = 1;
-                int index_y = 0;
-                while (str[dot_index + j] != 'X')
-                {
-                    num = (float)(str[dot_index + j] - '0') * pow(10, exponent);
-                    result = result + num;
-                    j++;
-                    exponent--;
-                    //start of y
-                    index_y = dot_index + j + 1;
-                }
-                result = result * scale;
-                x = result;
-                //x = result * pow(10, -coord_digits_x);
+            int j = i + 7;
+            //first number (x)
+            while (str[j] != '.')
+            {
+                j++;
+            }
+            int dot_index = j;
+            float num = 0;
+            float result = 0;
+            int exponent = 0;
+            j--;
+            while (str[j] != ',')
+            {
+                num = (float)(str[j] - '0') * pow(10, exponent);
+                result = result + num;
+                j--;
+                exponent++;
+            }
+            exponent = -1;
+            j = 1;
+            int index_y = 0;
+            while (str[dot_index + j] != 'X')
+            {
+                num = (float)(str[dot_index + j] - '0') * pow(10, exponent);
+                result = result + num;
+                j++;
+                exponent--;
 
-                //second number (y)
-                while (str[index_y] != '.')
-                {
-                    index_y++;
-                }
-                dot_index = index_y;
-                num = 0;
-                result = 0;
-                exponent = 0;
-                while (str[j] != 'X')
-                {
-                    num = (float)(str[j] - '0') * pow(10, exponent);
-                    result = result + num;
-                    index_y--;
-                    exponent++;
-                }
-                exponent = -1;
-                j = 1;
-                while (str[dot_index + index_y] != '*' && str[dot_index + index_y] != 'X')
-                {
-                    num = (float)(str[dot_index + index_y] - '0') * pow(10, exponent);
-                    result = result + num;
-                    index_y++;
-                    exponent--;
-                }
-                result = result * scale;
-                y = result;
-                //y = result * pow(10, -coord_digits_y);
+            }
+            //start of y
+            index_y = dot_index + j + 1;
+            result = result * scale;
+            x = result;
+            //x = result * pow(10, -coord_digits_x);
+
+            //second number (y)
+            dot_index = 0;
+            while (str[index_y] != '.')
+            {
+                index_y++;
+            }
+            dot_index = index_y;
+            num = 0;
+            result = 0;
+            exponent = 0;
+            index_y = index_y - 1;
+            while (str[index_y] != 'X')
+            {
+                num = (float)(str[index_y] - '0') * pow(10, exponent);
+                result = result + num;
+                index_y--;
+                exponent++;
+            }
+            exponent = -1;
+            index_y = 1;
+            while (str[dot_index + index_y] != '*' && str[dot_index + index_y] != 'X')
+            {
+                num = (float)(str[dot_index + index_y] - '0') * pow(10, exponent);
+                result = result + num;
+                index_y++;
+                exponent--;
+            }
+            result = result * scale;
+            y = result;
 
                 //let the diameter has one digit for x and one digit for y
                 i = i + 11;
-                all_shapes.add_aperture(3, num_shape, 0, x, y, 0, hole_diameter);
+                all_shapes.add_aperture(3, num_shape, x, 0, 0, 0, hole_diameter);
             }
             //need to create
             else if (str[i + 5] == 'P')
@@ -2023,7 +2029,7 @@ ID2D1Bitmap* DrawGerberOnBitmab(
         //drills
         ///////////////////
         MessageBoxW(handeller_to_window, L"start Draw Drills", L"start Draw Drills", MB_OKCANCEL);
-        char DrillsStr[] = "G04 EAGLE Gerber RS-274X export* G75* %MOMM*% %FSLAX34Y34*% %LPD*% %INSoldermask Bottom*% %IPPOS*% %AMOC8* 5,1,8,0,0,1.08239X$1,22.5*% G01* %ADD10C,1.524000*% %ADD11C,1.879600*% %ADD12C,2.743200*% %ADD13C,3.505200*% D10* X254000Y355600D03* X304800Y355600D03* X609600Y533400D03* X660400Y533400D03* D11* X317500Y431800D03* X393700Y431800D03* D12* X152400Y139700D03* X254000Y139700D03* D10* X152400Y685800D03* X177800Y685800D03* X381000Y533400D03* X508000Y533400D03* X520700Y660400D03* X647700Y660400D03* X381000Y596900D03* X508000Y596900D03* X368300Y685800D03* X495300Y685800D03* X850900Y368300D03* X876300Y393700D03* X850900Y419100D03* D11* X584200Y165100D03* X609600Y165100D03* X635000Y165100D03* D13* X609600Y340360D03* M02*";
+        //char DrillsStr[] = "G04 EAGLE Gerber RS-274X export* G75* %MOMM*% %FSLAX34Y34*% %LPD*% %INSoldermask Bottom*% %IPPOS*% %AMOC8* 5,1,8,0,0,1.08239X$1,22.5*% G01* %ADD10C,1.524000*% %ADD11C,1.879600*% %ADD12C,2.743200*% %ADD13C,3.505200*% D10* X254000Y355600D03* X304800Y355600D03* X609600Y533400D03* X660400Y533400D03* D11* X317500Y431800D03* X393700Y431800D03* D12* X152400Y139700D03* X254000Y139700D03* D10* X152400Y685800D03* X177800Y685800D03* X381000Y533400D03* X508000Y533400D03* X520700Y660400D03* X647700Y660400D03* X381000Y596900D03* X508000Y596900D03* X368300Y685800D03* X495300Y685800D03* X850900Y368300D03* X876300Y393700D03* X850900Y419100D03* D11* X584200Y165100D03* X609600Y165100D03* X635000Y165100D03* D13* X609600Y340360D03* M02*";
         DrawDrills(DrillsStr, size, coord_digits_x, coord_digits_y, Shift_X, Shift_Y, scale, pWicRenderTarget, pWicBrush);
         D2dbitmap = DrawBitmapOnWindow(handeller_to_window, pFactory, pBitmap, wicFactory);
         //end draw dills

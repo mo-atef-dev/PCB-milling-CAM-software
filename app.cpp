@@ -139,7 +139,7 @@ int App_OpenGbrFile(HWND hwnd)
 
 int App_OpenDrillFile(HWND hwnd)
 {
-    int r = App_OpenFile(hwnd, szDrillPath, szDrillBuffer, true, L"Gerber (.gbr, .gb)\0*.gbr;*.gb\0", 1);
+    int r = App_OpenFile(hwnd, szDrillPath, szDrillBuffer, true, L"Drill (.drl)\0*.drl\0", 1);
     if(r == 0) EnableMenuItem(menu, ID_MAXCPR, MF_ENABLED);
 }
 

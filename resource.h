@@ -9,6 +9,7 @@
 #define ID_OPEN                                 3
 #define ID_MAXCPR                               5
 #define IDD_MAXCPR                              101
+#define IDD_WIZARD                              103
 #define ID_CANCEL                               40000
 #define ID_OPENTRACE                            40000
 #define ID_OPENCOPPER                           40001
