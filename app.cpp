@@ -99,6 +99,30 @@ HWND App_CreateDrawingWindow(HWND hwnd)
     return cHwnd;
 }
 
+LRESULT CALLBACK WinProc_Draw(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
+{
+    //static CMNStatusBar status_bar;
+    switch(message)
+    {
+    case WM_CREATE:
+        break;
+    case WM_MOUSEMOVE:
+        {
+            /*
+            char xstr[20];
+            char ystr[20];
+            sprintf_s(xstr, 20, "X : %d", GET_X_LPARAM(lParam));
+            sprintf_s(ystr, 20, "Y : %d", GET_Y_LPARAM(lParam));
+            status_bar.UpdateText(1, xstr);
+            status_bar.UpdateText(2, ystr);
+            */
+        }
+        break;
+    default:
+        return DefWindowProc (hwnd, message, wParam, lParam);
+    }
+}
+
 BOOL CALLBACK DlgProc_MaxCopper(HWND hwndDlg, UINT message, WPARAM wParam, LPARAM lParam)
 {
     static DlgStrct_MaxCopper* pResult;
@@ -173,6 +197,9 @@ LRESULT CALLBACK WinProc_Layers(HWND hwnd, UINT message, WPARAM wParam, LPARAM l
 {
     return DefWindowProc (hwnd, message, wParam, lParam);
 }
+
+//string App_GenerateMMGFromImage();
+//string App_GenerateMMGFromImage();
 
 int App_OpenGbrFile(HWND hwnd)
 {

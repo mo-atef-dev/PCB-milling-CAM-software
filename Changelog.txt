@@ -1,0 +1,4 @@
+-- Version 2022.5.9
+
+Changes:
+-Fixed a critical mistake in outputting the compressed 4 bytes command (the byte containing the configurations was placed as the fourth byte but it was correctly fixed to be the first byte).

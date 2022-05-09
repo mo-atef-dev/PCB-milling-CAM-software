@@ -173,6 +173,7 @@ LRESULT CALLBACK WindowProcedure (HWND hwnd, UINT message, WPARAM wParam, LPARAM
             // Create the status bar
             status_bar.InitBar(hwnd, 0, GetModuleHandle(NULL), 4);
             status_bar.UpdateText(0, "Status text");
+            status_bar.UpdateText(3, "mm");
 
             // Create the side layers window
             layerWnd = App_CreateLayersWindow(hwnd);
@@ -301,6 +302,7 @@ LRESULT CALLBACK WindowProcedure (HWND hwnd, UINT message, WPARAM wParam, LPARAM
                         }
                     }
                     vector<Command> traceCmds = TracePixelMatrix(&pm, result.zTop, result.zBottom);
+                    traceCmds = SimplifyCommandsXY(traceCmds);
                     mmgString = CommandsString(traceCmds, result.pixTomm, true);
 
                     /// Create a file to store the resulting mmg commands
@@ -349,10 +351,10 @@ LRESULT CALLBACK WindowProcedure (HWND hwnd, UINT message, WPARAM wParam, LPARAM
                     __int8* outBuff = new __int8[l*4];
                     for(int i = 0; i < l; i += 4)
                     {
-                        outBuff[i] = outCmds[i/4].x;
-                        outBuff[i+1] = outCmds[i/4].y;
-                        outBuff[i+2] = outCmds[i/4].z;
-                        outBuff[i+3] = outCmds[i/4].acc;
+                        outBuff[i] = outCmds[i/4].acc;
+                        outBuff[i+1] = outCmds[i/4].x;
+                        outBuff[i+2] = outCmds[i/4].y;
+                        outBuff[i+3] = outCmds[i/4].z;
                     }
 
                     HANDLE hfile_cmd = CreateFileW(L"./out.hex", GENERIC_WRITE, FILE_SHARE_READ, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
@@ -422,6 +424,7 @@ LRESULT CALLBACK WindowProcedure (HWND hwnd, UINT message, WPARAM wParam, LPARAM
                         }
                     }
                     vector<Command> traceCmds = TracePixelMatrix(&pm, result.zTop, result.zBottom);
+                    traceCmds = SimplifyCommandsXY(traceCmds);
                     mmgString = CommandsString(traceCmds, result.pixTomm, true);
 
                     /// Create a file to store the resulting mmg commands

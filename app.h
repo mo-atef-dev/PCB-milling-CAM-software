@@ -2,6 +2,7 @@
 #define APP_H_INCLUDED
 
 #include <windows.h>
+#include <windowsx.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <tchar.h>
