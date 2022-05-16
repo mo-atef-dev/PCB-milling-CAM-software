@@ -64,7 +64,7 @@
 	<math.h>
 	<stdio.h>
 
-1652113693 source:c:\users\mohamed atef\documents\ee school\graduation project\windows software\pcbsoftware_v2\main.cpp
+1652223825 source:c:\users\mohamed atef\documents\ee school\graduation project\windows software\pcbsoftware_v2\main.cpp
 	<tchar.h>
 	<windows.h>
 	<windowsx.h>
@@ -102,11 +102,12 @@
 1638998857 source:d:\books\faculty\4th\project\v1\v2\pcbsoftware_v2\source.cpp
 	"Header.h"
 
-1650900571 c:\users\mohamed atef\documents\ee school\graduation project\windows software\pcbsoftware_v2\cmncontrols.h
+1652223489 c:\users\mohamed atef\documents\ee school\graduation project\windows software\pcbsoftware_v2\cmncontrols.h
 	<windows.h>
+	<windowsx.h>
 	<commctrl.h>
 
-1650901435 source:c:\users\mohamed atef\documents\ee school\graduation project\windows software\pcbsoftware_v2\cmncontrols.cpp
+1652223652 source:c:\users\mohamed atef\documents\ee school\graduation project\windows software\pcbsoftware_v2\cmncontrols.cpp
 	"cmncontrols.h"
 
 1651277800 source:c:\users\mohamed atef\documents\ee school\graduation project\windows software\pcbsoftware_v2\tracebmp.cpp
@@ -130,7 +131,7 @@
 	<string>
 	<vector>
 
-1651525393 c:\users\mohamed atef\documents\ee school\graduation project\windows software\pcbsoftware_v2\maxcupper_loading.h
+1652123989 c:\users\mohamed atef\documents\ee school\graduation project\windows software\pcbsoftware_v2\maxcupper_loading.h
 	<wincodec.h>
 	<objbase.h>
 	<combaseapi.h>
@@ -158,10 +159,10 @@
 
 1651528803 c:\users\mohamed atef\documents\ee school\graduation project\windows software\pcbsoftware_v2\resource.h
 
-1651530878 source:c:\users\mohamed atef\documents\ee school\graduation project\windows software\pcbsoftware_v2\app.cpp
+1652223907 source:c:\users\mohamed atef\documents\ee school\graduation project\windows software\pcbsoftware_v2\app.cpp
 	"app.h"
 
-1651530825 c:\users\mohamed atef\documents\ee school\graduation project\windows software\pcbsoftware_v2\app.h
+1652223068 c:\users\mohamed atef\documents\ee school\graduation project\windows software\pcbsoftware_v2\app.h
 	<windows.h>
 	<windowsx.h>
 	<stdlib.h>
@@ -170,6 +171,8 @@
 	<string>
 	"resource.h"
 	"bitmap_image.hpp"
+	"cmncontrols.h"
+	"cmds.h"
 
 1651268740 source:c:\users\mohamed atef\documents\ee school\graduation project\windows software\pcbsoftware_v2\cmds.cpp
 	<iostream>

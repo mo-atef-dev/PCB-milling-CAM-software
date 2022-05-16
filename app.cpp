@@ -33,7 +33,7 @@ int App_Initialize(HINSTANCE hThisInstance)
      /* The child window structure */
     drawCl.hInstance = hThisInstance;
     drawCl.lpszClassName = szDrawClassName;
-    drawCl.lpfnWndProc = WinProc_Layers;
+    drawCl.lpfnWndProc = WinProc_Draw;
     drawCl.style = CS_DBLCLKS;
     drawCl.cbSize = sizeof(WNDCLASSEX);
 
@@ -86,7 +86,7 @@ HWND App_CreateDrawingWindow(HWND hwnd)
                            WS_CHILD | WS_BORDER,
                            100, 100, 100, 100,
                            hwnd,
-                           (HMENU) ID_CHILD_Layers,
+                           (HMENU) ID_CHILD_Draw,
                            GetModuleHandle(NULL),
                            NULL);
 
@@ -102,9 +102,11 @@ HWND App_CreateDrawingWindow(HWND hwnd)
 LRESULT CALLBACK WinProc_Draw(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
     //static CMNStatusBar status_bar;
+
     switch(message)
     {
     case WM_CREATE:
+
         break;
     case WM_MOUSEMOVE:
         {
@@ -195,11 +197,73 @@ BOOL CALLBACK DlgProc_MaxCopper(HWND hwndDlg, UINT message, WPARAM wParam, LPARA
 
 LRESULT CALLBACK WinProc_Layers(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
-    return DefWindowProc (hwnd, message, wParam, lParam);
+    static CMNTextBox txtBox_copper;
+    static CMNTextBox txtBox_border;
+    static CMNTextBox txtBox_drills;
+    static CMNTextBox txtBox_trace;
+
+    static CMNLabel label_copper;
+    static CMNLabel label_border;
+    static CMNLabel label_drills;
+    static CMNLabel label_trace;
+
+    static CMNButton btn_copper;
+    static CMNButton btn_border;
+    static CMNButton btn_drills;
+    static CMNButton btn_trace;
+
+    switch(message)
+    {
+    case WM_CREATE:
+        {
+            // Create the controls of the window here
+            // Most of this code is hard-coded layouting code which is not optimal
+
+            int yoffset = layersPadding;
+
+            label_copper.InitLabel(hwnd, 0, GetModuleHandle(NULL), layersPadding, yoffset, layersWidth-2*layersPadding, 20, WS_CHILD | WS_VISIBLE, "Gerber Copper File");
+            txtBox_copper.InitBox(hwnd, 0, GetModuleHandle(NULL), layersPadding, yoffset + layersItemsSpacing/4 + 20, layersWidth-2*layersPadding-layersItemsSpacing*4, 20, CMNTXT_READONLY);
+            btn_copper.InitButton(hwnd, 0, GetModuleHandle(NULL), layersWidth - layersItemsSpacing*4, yoffset + layersItemsSpacing/4 + 20, layersItemsSpacing*4-layersPadding, 20, BS_DEFPUSHBUTTON | WS_CHILD | WS_VISIBLE, "Browse");
+
+            yoffset = yoffset + layersItemsSpacing/4 + 20 + layersItemsSpacing*2;
+            label_border.InitLabel(hwnd, 0, GetModuleHandle(NULL), layersPadding, yoffset, layersWidth-2*layersPadding, 20, WS_CHILD | WS_VISIBLE, "Gerber Border File");
+            txtBox_border.InitBox(hwnd, 0, GetModuleHandle(NULL), layersPadding, yoffset + layersItemsSpacing/4 + 20, layersWidth-2*layersPadding-layersItemsSpacing*4, 20, CMNTXT_READONLY);
+            btn_border.InitButton(hwnd, 0, GetModuleHandle(NULL), layersWidth - layersItemsSpacing*4, yoffset + layersItemsSpacing/4 + 20, layersItemsSpacing*4-layersPadding, 20, BS_DEFPUSHBUTTON | WS_CHILD | WS_VISIBLE, "Browse");
+
+            yoffset = yoffset + layersItemsSpacing/4 + 20 + layersItemsSpacing*2;
+            label_drills.InitLabel(hwnd, 0, GetModuleHandle(NULL), layersPadding, yoffset, layersWidth-2*layersPadding, 20, WS_CHILD | WS_VISIBLE, "Gerber Drill File");
+            txtBox_drills.InitBox(hwnd, 0, GetModuleHandle(NULL), layersPadding, yoffset + layersItemsSpacing/4 + 20, layersWidth-2*layersPadding-layersItemsSpacing*4, 20, CMNTXT_READONLY);
+            btn_drills.InitButton(hwnd, 0, GetModuleHandle(NULL), layersWidth - layersItemsSpacing*4, yoffset + layersItemsSpacing/4 + 20, layersItemsSpacing*4-layersPadding, 20, BS_DEFPUSHBUTTON | WS_CHILD | WS_VISIBLE, "Browse");
+
+            yoffset = yoffset + layersItemsSpacing/4 + 20 + layersItemsSpacing*2;
+            label_trace.InitLabel(hwnd, 0, GetModuleHandle(NULL), layersPadding, yoffset, layersWidth-2*layersPadding, 20, WS_CHILD | WS_VISIBLE, "Image File");
+            txtBox_trace.InitBox(hwnd, 0, GetModuleHandle(NULL), layersPadding, yoffset + layersItemsSpacing/4 + 20, layersWidth-2*layersPadding-layersItemsSpacing*4, 20, CMNTXT_READONLY);
+            btn_trace.InitButton(hwnd, 0, GetModuleHandle(NULL), layersWidth - layersItemsSpacing*4, yoffset + layersItemsSpacing/4 + 20, layersItemsSpacing*4-layersPadding, 20, BS_DEFPUSHBUTTON | WS_CHILD | WS_VISIBLE, "Browse");
+        }
+        break;
+    case WMU_UPDATE:
+        if(szGerberPath)
+        txtBox_copper.SetText(szGerberPath, MAX_PATH);
+
+        if(szBorderPath)
+        txtBox_border.SetText(szBorderPath, MAX_PATH);
+
+        if(szDrillPath)
+        txtBox_drills.SetText(szDrillPath, MAX_PATH);
+
+        if(szTracePath)
+        txtBox_trace.SetText(szTracePath, MAX_PATH);
+        break;
+    default:
+        return DefWindowProc (hwnd, message, wParam, lParam);
+    }
 }
 
-//string App_GenerateMMGFromImage();
-//string App_GenerateMMGFromImage();
+//string App_GenerateMMGFromImage(bitmap_image* bitmap, const int zTop, const int zBottom, const double pixTomm = 0.1f);
+//string App_GenerateMMGFromImage(const MyBitmap& bitmap, const int zTop, const int zBottom, const double pixTomm = 0.1f);
+//vector<OutCommand> App_GenerateCmdsFromMMG(const string& mmg);
+//void App_ExportMMGFile(const string& mmg, CHAR* file);
+//void App_ExportCmds(const vector<OutCommand>& cmds, CHAR* file);
 
 int App_OpenGbrFile(HWND hwnd)
 {
@@ -319,3 +383,14 @@ int App_OpenFile(HWND hwnd, WCHAR* szFilePath, CHAR* &FileBuffer, BOOL LoadFile,
 
     return 0;
 }
+
+int App_GetTraceInputs(DlgStrct_MaxCopper& result)
+{
+
+}
+
+int App_PMtoMMG(PixelMatrix* pm, string& mmg);
+int App_SaveMMG(LPWSTR swzPath, const string& mmg);
+int App_SaveImageFromMMG(LPWSTR swzPath, const string& mmg);
+int App_MMGtoCMDs(const string& mmg, std::vector<OutCommand>& cmds, const float mmPerStep);
+int App_SaveCMDs(LPWSTR swzPath,  const std::vector<OutCommand>& cmds);

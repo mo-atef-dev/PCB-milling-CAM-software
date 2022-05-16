@@ -61,9 +61,16 @@ FLOAT origin_x = 0;
 FLOAT origin_y = 0;
 FLOAT img_scale = 1;
 
-/* Constants for program parameters */
-const int layersWidth = 300;
-const float mmPerStep = 0.025;
+/* Constants for layers window layout */
+const int layersWidth = 400;
+const int layersPadding = 10;
+const int layersItemsSpacing = 20;
+
+/* Constants for layers window layout */
+const int drawMargin = 10;
+
+/* Program constants */
+const float mmPerStep = 0.1;
 
 /* Other variables */
 HMENU menu;
@@ -167,6 +174,13 @@ LRESULT CALLBACK WindowProcedure (HWND hwnd, UINT message, WPARAM wParam, LPARAM
 
     switch (message)                  /* handle the messages */
     {
+        case WM_GETMINMAXINFO:
+            {
+                LPMINMAXINFO lpMMI = (LPMINMAXINFO)lParam;
+                lpMMI->ptMinTrackSize.x = 720;
+                lpMMI->ptMinTrackSize.y = 720;
+            }
+            break;
         case WM_CREATE:
             menu = GetMenu(hwnd);
 
@@ -185,7 +199,7 @@ LRESULT CALLBACK WindowProcedure (HWND hwnd, UINT message, WPARAM wParam, LPARAM
 
         break;
         case WM_DESTROY:
-            PostQuitMessage (0);       /* send a WM_QUIT to the message queue */
+            PostQuitMessage(0);       /* send a WM_QUIT to the message queue */
             break;
         case WM_SIZE:
             {
@@ -195,7 +209,7 @@ LRESULT CALLBACK WindowProcedure (HWND hwnd, UINT message, WPARAM wParam, LPARAM
                 // Resize layers window
                 MoveWindow(layerWnd, rectWnd.right - layersWidth, 0, layersWidth, rectWnd.bottom - 22, TRUE);
                 // Resize drawing window
-                MoveWindow(drawWnd, 0, 0, rectWnd.right - layersWidth, rectWnd.bottom - 22, TRUE);
+                MoveWindow(drawWnd, drawMargin, drawMargin, rectWnd.right - layersWidth - drawMargin*2, rectWnd.bottom - 22 - drawMargin*2, TRUE);
                 // Resize status bar
                 status_bar.ResizeBar();
             }
@@ -349,7 +363,7 @@ LRESULT CALLBACK WindowProcedure (HWND hwnd, UINT message, WPARAM wParam, LPARAM
                     // Convert the vector to a buffer
                     int l = outCmds.size();
                     __int8* outBuff = new __int8[l*4];
-                    for(int i = 0; i < l; i += 4)
+                    for(int i = 0; i < l*4; i += 4)
                     {
                         outBuff[i] = outCmds[i/4].acc;
                         outBuff[i+1] = outCmds[i/4].x;
@@ -375,6 +389,7 @@ LRESULT CALLBACK WindowProcedure (HWND hwnd, UINT message, WPARAM wParam, LPARAM
                     {
                         printf("ERROR ## Failed to create the output hex file\n");
                     }
+                    delete[] outBuff;
                     MessageBox(hwnd, "Successfully created files out.hex, out.mmg, and out.bmp", "Success", MB_OK | MB_ICONINFORMATION);
                 }
                 break;
@@ -506,6 +521,7 @@ LRESULT CALLBACK WindowProcedure (HWND hwnd, UINT message, WPARAM wParam, LPARAM
 
                 break;
             }
+            SendMessage(layerWnd, WMU_UPDATE, 0, 0);
         }
             break;
         default:                      /* for messages that we don't deal with */
