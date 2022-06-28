@@ -201,16 +201,19 @@ LRESULT CALLBACK WinProc_Layers(HWND hwnd, UINT message, WPARAM wParam, LPARAM l
     static CMNTextBox txtBox_border;
     static CMNTextBox txtBox_drills;
     static CMNTextBox txtBox_trace;
+    static CMNTextBox txtBox_cmds;
 
     static CMNLabel label_copper;
     static CMNLabel label_border;
     static CMNLabel label_drills;
     static CMNLabel label_trace;
+    static CMNLabel label_cmds;
 
     static CMNButton btn_copper;
     static CMNButton btn_border;
     static CMNButton btn_drills;
     static CMNButton btn_trace;
+    static CMNButton btn_cmds;
 
     switch(message)
     {
@@ -236,23 +239,31 @@ LRESULT CALLBACK WinProc_Layers(HWND hwnd, UINT message, WPARAM wParam, LPARAM l
             btn_drills.InitButton(hwnd, 0, GetModuleHandle(NULL), layersWidth - layersItemsSpacing*4, yoffset + layersItemsSpacing/4 + 20, layersItemsSpacing*4-layersPadding, 20, BS_DEFPUSHBUTTON | WS_CHILD | WS_VISIBLE, "Browse");
 
             yoffset = yoffset + layersItemsSpacing/4 + 20 + layersItemsSpacing*2;
-            label_trace.InitLabel(hwnd, 0, GetModuleHandle(NULL), layersPadding, yoffset, layersWidth-2*layersPadding, 20, WS_CHILD | WS_VISIBLE, "Image File");
+            label_trace.InitLabel(hwnd, 0, GetModuleHandle(NULL), layersPadding, yoffset, layersWidth-2*layersPadding, 20, WS_CHILD | WS_VISIBLE, "Isolation Image File");
             txtBox_trace.InitBox(hwnd, 0, GetModuleHandle(NULL), layersPadding, yoffset + layersItemsSpacing/4 + 20, layersWidth-2*layersPadding-layersItemsSpacing*4, 20, CMNTXT_READONLY);
             btn_trace.InitButton(hwnd, 0, GetModuleHandle(NULL), layersWidth - layersItemsSpacing*4, yoffset + layersItemsSpacing/4 + 20, layersItemsSpacing*4-layersPadding, 20, BS_DEFPUSHBUTTON | WS_CHILD | WS_VISIBLE, "Browse");
+
+            yoffset = yoffset + layersItemsSpacing/4 + 20 + layersItemsSpacing*2;
+            label_cmds.InitLabel(hwnd, 0, GetModuleHandle(NULL), layersPadding, yoffset, layersWidth-2*layersPadding, 20, WS_CHILD | WS_VISIBLE, "Generated Commands File");
+            txtBox_cmds.InitBox(hwnd, 0, GetModuleHandle(NULL), layersPadding, yoffset + layersItemsSpacing/4 + 20, layersWidth-2*layersPadding-layersItemsSpacing*4, 20, CMNTXT_READONLY);
+            btn_cmds.InitButton(hwnd, 0, GetModuleHandle(NULL), layersWidth - layersItemsSpacing*4, yoffset + layersItemsSpacing/4 + 20, layersItemsSpacing*4-layersPadding, 20, BS_DEFPUSHBUTTON | WS_CHILD | WS_VISIBLE, "Browse");
         }
         break;
     case WMU_UPDATE:
         if(szGerberPath)
-        txtBox_copper.SetText(szGerberPath, MAX_PATH);
+            txtBox_copper.SetText(szGerberPath, MAX_PATH);
 
         if(szBorderPath)
-        txtBox_border.SetText(szBorderPath, MAX_PATH);
+            txtBox_border.SetText(szBorderPath, MAX_PATH);
 
         if(szDrillPath)
-        txtBox_drills.SetText(szDrillPath, MAX_PATH);
+            txtBox_drills.SetText(szDrillPath, MAX_PATH);
 
         if(szTracePath)
-        txtBox_trace.SetText(szTracePath, MAX_PATH);
+            txtBox_trace.SetText(szTracePath, MAX_PATH);
+
+        if(szCmdsPath)
+            txtBox_cmds.SetText(szCmdsPath, MAX_PATH);
         break;
     default:
         return DefWindowProc (hwnd, message, wParam, lParam);
@@ -269,18 +280,21 @@ int App_OpenGbrFile(HWND hwnd)
 {
     int r = App_OpenFile(hwnd, szGerberPath, szGerberBuffer, true, L"Gerber (.gbr, .gb)\0*.gbr;*.gb\0", 1);
     if(r == 0) EnableMenuItem(menu, ID_MAXCPR, MF_ENABLED);
+    return r;
 }
 
 int App_OpenDrillFile(HWND hwnd)
 {
     int r = App_OpenFile(hwnd, szDrillPath, szDrillBuffer, true, L"Drill (.drl)\0*.drl\0", 1);
     if(r == 0) EnableMenuItem(menu, ID_MAXCPR, MF_ENABLED);
+    return r;
 }
 
 int App_OpenBorderFile(HWND hwnd)
 {
     int r = App_OpenFile(hwnd, szBorderPath, szBorderBuffer, true, L"Gerber (.gbr, .gb)\0*.gbr;*.gb\0", 1);
     if(r == 0) EnableMenuItem(menu, ID_MAXCPR, MF_ENABLED);
+    return r;
 }
 
 int App_OpenTraceImage(HWND hwnd)
@@ -291,10 +305,17 @@ int App_OpenTraceImage(HWND hwnd)
     std::wstring w_str(szTracePath);
     pTraceImage = new bitmap_image(string(w_str.begin(), w_str.end()));
     if(r == 0) EnableMenuItem(menu, ID_MMG, MF_ENABLED);
+    return r;
 }
 int App_OpenCopperImage(HWND hwnd)
 {
     App_OpenFile(hwnd, szGerberPath, szGerberBuffer, true, L"All\0*.*\0Text (.txt)\0*.TXT\0Gerber (.gbr, .gb)\0*.gbr;*.gb\0Image (.bmp)\0*.bmp\0", 3);
+}
+
+int App_OpenCommands(HWND hwnd)
+{
+    int r = App_OpenFile(hwnd, szCmdsPath, szGerberBuffer, false, L"All\0*.*\0Binary (.hex, .dat, .bin)\0*.hex;*.bin;*.dat\0", 1);
+    return r;
 }
 
 int App_OpenFile(HWND hwnd, WCHAR* szFilePath, CHAR* &FileBuffer, BOOL LoadFile, const LPCWSTR lpstrFilter, DWORD nFilterIndex)
@@ -331,7 +352,7 @@ int App_OpenFile(HWND hwnd, WCHAR* szFilePath, CHAR* &FileBuffer, BOOL LoadFile,
         // Open file to get information
         HANDLE hfile = CreateFileW(szFilePath, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
 
-        // If the buffer is NULL, it is assumed only the path to the file is required by the function and the function returns;
+        // If LoadFile is false, it is assumed only the path to the file is required by the function and the function returns;
         if(LoadFile == false)
         {
             return 0;

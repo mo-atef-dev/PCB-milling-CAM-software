@@ -19,4 +19,6 @@
 #define ID_OPENDRILL                            40003
 #define IDC_EDIT_ZBOT                           40004
 #define ID_OPENBORD                             40004
+#define ID_DOWNLOAD                             40005
 #define ID_OK                                   40005
+#define ID_OPENCMDS                             40006

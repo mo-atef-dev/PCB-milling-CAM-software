@@ -34,8 +34,10 @@ extern CHAR* szDrillBuffer;
 extern WCHAR szBorderPath[MAX_PATH];
 extern CHAR* szBorderBuffer;
 
-extern WCHAR szTracePath[];
+extern WCHAR szTracePath[MAX_PATH];
 extern bitmap_image* pTraceImage;
+
+extern WCHAR szCmdsPath[MAX_PATH];
 
 extern string mmgString;
 extern HMENU menu;
@@ -65,6 +67,7 @@ int App_OpenDrillFile(HWND hwnd);
 int App_OpenBorderFile(HWND hwnd);
 int App_OpenTraceImage(HWND hwnd);
 int App_OpenCopperImage(HWND hwnd);
+int App_OpenCommands(HWND hwnd);
 int App_OpenFile(HWND hwnd, WCHAR* szFilePath, CHAR* &FileBuffer, BOOL LoadFile, const LPCWSTR lpstrFilter, DWORD nFilterIndex);
 
 int App_GetTraceInputs(DlgStrct_MaxCopper& result, HWND hwndParent);

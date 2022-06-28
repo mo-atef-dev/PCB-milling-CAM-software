@@ -16,4 +16,16 @@ Changes:
 -- Version 2022.5.16
 
 Changes:
--
+-Same as previous
+
+-- Version 2022.6.28
+
+Suggestions:
+- Make outBuff (the array of bytes storing the output commands) global to allow separating command generation from downloading
+
+Changes:
+- Added a feature to allow downloading an open commands file
+- Added the ability to open a command file
+- When a command file is generated in a session, it is automatically set as the command file for downloading
+- Added usb.cpp and usb.h from Ahmed Abdulazeem for USB downloading feature
+- Added forgotten (return r) statements to the end of each App_Open function

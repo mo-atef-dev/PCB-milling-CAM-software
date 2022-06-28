@@ -25,6 +25,7 @@
 // Headers from other team members
 #include "cmncontrols.h"
 #include "maxCupper_loading.h"
+#include "usb.h"
 
 // Debug related header includes
 #if defined(DEBUG)
@@ -49,6 +50,8 @@ CHAR* szDrillBuffer = NULL;
 
 WCHAR szBorderPath[MAX_PATH] = L"";
 CHAR* szBorderBuffer = NULL;
+
+WCHAR szCmdsPath[MAX_PATH] = L"";
 
 string mmgString;
 
@@ -288,6 +291,77 @@ LRESULT CALLBACK WindowProcedure (HWND hwnd, UINT message, WPARAM wParam, LPARAM
             case ID_OPENTRACE:
                     App_OpenTraceImage(hwnd);
                 break;
+            case ID_OPENCMDS:
+                    App_OpenCommands(hwnd);
+                break;
+            case ID_DOWNLOAD:
+                {
+                    if(wcslen(szCmdsPath) >= 1)
+                    {
+                        printf("Commands file path exists, starting download....\n");
+
+                        // Open the file and store in a buffer
+                        HANDLE hfile = CreateFileW(szCmdsPath, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
+                        unsigned char* FileBuffer = NULL;
+                        unsigned char FileName[] = "out.bin";
+
+                        if(hfile)
+                        {
+                            DWORD fileSize = GetFileSize(hfile, NULL);
+                            if(FileBuffer != NULL)
+                                delete[] FileBuffer;
+                            FileBuffer = new unsigned char[fileSize];    // Extra character to insert a 0 in case the file chosen is not null terminated
+                            DWORD bytesRead = 0;
+                            if(ReadFile(hfile, FileBuffer, fileSize, &bytesRead, NULL))
+                            {
+                                printf("\nCommands file read successfully\n");
+                                if(bytesRead > fileSize)
+                                {
+                                    printf("\nERROR: Number of bytes read is more than the maximum allowed!\n");
+                                    break;
+                                }
+                            }
+                            else
+                            {
+                                MessageBox(hwnd, "Failed to read commands file", "Error", MB_OK | MB_ICONERROR);
+                                delete[] FileBuffer;
+                                break;
+                            }
+                        }
+                        else
+                        {
+                            MessageBox(hwnd, "Failed to create commands file handle", "Error", MB_OK | MB_ICONERROR);
+                            break;
+                        }
+
+                        // Send the file to the USB function
+                        int r = 0;
+
+                        for(int i = 0; i < 10; i++)
+                        {
+                            r = usb_send(FileBuffer, FileName);
+                            if(r)
+                            {
+                                printf("Successfully downloaded the commands\n");
+                                break;
+                            }
+                            else
+                            {
+                                printf("Failed to download commands at try %d\n", i+1);
+                            }
+                        }
+                        if(r == 0)
+                        {
+                            printf("Failed to download commands after 10 trys\n");
+                            MessageBox(hwnd, "Error downloading commands", "Error", MB_OK | MB_ICONERROR);
+                        }
+                    }
+                    else
+                    {
+                        MessageBox(hwnd, "Please generate or open a commands file", "Failed", MB_OK | MB_ICONEXCLAMATION);
+                    }
+                }
+                break;
             case ID_MMG:
                 {
                     DlgStrct_MaxCopper result;
@@ -304,8 +378,6 @@ LRESULT CALLBACK WindowProcedure (HWND hwnd, UINT message, WPARAM wParam, LPARAM
                     App_SaveMMG(L"out.mmg", mmgString);
 
                     App_SaveImageFromPixCmds("out.bmp", traceCmds, pTraceImage->width(), pTraceImage->height());
-
-
 
                     printf("Finished mmg file creation\n");
 
@@ -436,6 +508,9 @@ LRESULT CALLBACK WindowProcedure (HWND hwnd, UINT message, WPARAM wParam, LPARAM
                     }
                     vector<OutCommand> outCmds = step_mov(cmpCmds, mmPerStep, mmPerStep, mmPerStep);
 
+                    // Add terminating command
+                    outCmds.push_back({0, 0, 0, 0});
+
                     // Convert the vector to a buffer
                     int l = outCmds.size();
                     __int8* outBuff = new __int8[l*4];
@@ -460,6 +535,17 @@ LRESULT CALLBACK WindowProcedure (HWND hwnd, UINT message, WPARAM wParam, LPARAM
                             printf("ERROR ## Failed to write the output file out.hex with total amount of %d bytes written\n", writtenBytes);
                         }
                         CloseHandle(hfile_cmd);
+                        int r = GetFullPathNameW(L"out.mmg", MAX_PATH, szCmdsPath, NULL);
+                        if(r == 0)
+                        {
+                            //StrCpyW(szCmdsPath, L"");
+                            MessageBox(NULL, "Could not get path the the output commands file", "Error", MB_OK | MB_ICONERROR);
+                        }
+                        else if(r >= MAX_PATH)
+                        {
+                            //StrCpyW(szCmdsPath, L"");
+                            MessageBox(NULL, "Path to the generated command file is too long", "Error", MB_OK | MB_ICONERROR);
+                        }
                     }
                     else
                     {
