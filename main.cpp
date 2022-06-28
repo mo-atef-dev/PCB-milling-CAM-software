@@ -185,9 +185,10 @@ LRESULT CALLBACK WindowProcedure (HWND hwnd, UINT message, WPARAM wParam, LPARAM
             menu = GetMenu(hwnd);
 
             // Create the status bar
-            status_bar.InitBar(hwnd, 0, GetModuleHandle(NULL), 4);
+            status_bar.InitBar(hwnd, 0, GetModuleHandle(NULL), 5);
             status_bar.UpdateText(0, "Status text");
             status_bar.UpdateText(3, "mm");
+            status_bar.UpdateText(4, "No tool path is generated");
 
             // Create the side layers window
             layerWnd = App_CreateLayersWindow(hwnd);
@@ -290,75 +291,27 @@ LRESULT CALLBACK WindowProcedure (HWND hwnd, UINT message, WPARAM wParam, LPARAM
             case ID_MMG:
                 {
                     DlgStrct_MaxCopper result;
-                    if(DialogBoxParam(GetModuleHandle(NULL), MAKEINTRESOURCE(IDD_MAXCPR), hwnd, (DLGPROC)DlgProc_MaxCopper, (LPARAM)(&result)) == ID_OK)
-                    {
-                        if(!result.valid)
-                        {
-                            MessageBox(NULL, "Please enter correct numbers in the text fields", "Error", MB_OK | MB_ICONERROR);
-                            return 0;
-                        }
-                    }
-                    else
+
+                    if(App_GetTraceInputs(result, hwnd) == 0)
                     {
                         return 0;
                     }
 
-                    PixelMatrix pm(pTraceImage->width(), pTraceImage->height());
-                    for(int i = 0; i < pTraceImage->width(); i++)
-                    {
-                        for(int j = 0; j < pTraceImage->height(); j++)
-                        {
-                            rgb_t color = pTraceImage->get_pixel(i, j);
-                            if(color.red != 255 || color.green != 255 || color.blue != 255)
-                            {
-                                pm.SetPixelState(i, j, ISOLATE);
-                            }
-                        }
-                    }
-                    vector<Command> traceCmds = TracePixelMatrix(&pm, result.zTop, result.zBottom);
-                    traceCmds = SimplifyCommandsXY(traceCmds);
-                    mmgString = CommandsString(traceCmds, result.pixTomm, true);
+                    vector<Command> traceCmds;
 
-                    /// Create a file to store the resulting mmg commands
-                    HANDLE hfile_mmg = CreateFileW(L"./out.mmg", GENERIC_WRITE, FILE_SHARE_READ, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
-                    if(hfile_mmg != INVALID_HANDLE_VALUE)
-                    {
-                        DWORD writtenBytes;
-                        if(WriteFile(hfile_mmg, mmgString.c_str(), mmgString.size(), &writtenBytes, NULL))
-                        {
-                            printf("Successfully written the output file out.mmg with total amount of %d bytes written\n", writtenBytes);
-                        }
-                        else
-                        {
-                            printf("ERROR ## Failed to write the output file out.mmg with total amount of %d bytes written\n", writtenBytes);
-                        }
-                        CloseHandle(hfile_mmg);
-                    }
-                    else
-                    {
-                        printf("ERROR ## Failed to create the output mmg file\n");
-                    }
+                    App_BitmaptoMMG(pTraceImage, mmgString, result, traceCmds, true);
 
-                    /// Draw the output image
+                    App_SaveMMG(L"out.mmg", mmgString);
 
-                    bitmap_image img2(pTraceImage->width(), pTraceImage->height());
-                    img2.set_all_channels(255);
-                    DetailedCheck(traceCmds, img2).img.save_image("out.bmp");
+                    App_SaveImageFromPixCmds("out.bmp", traceCmds, pTraceImage->width(), pTraceImage->height());
 
-                    ///
+
 
                     printf("Finished mmg file creation\n");
 
-                    /// Create a file to store the resulting compressed commands
-                    /// Use the resulting mmg commands to generate the compressed 4 byte commands
-                    vector<CompressedCommand> cmpCmds(traceCmds.size());
-                    for(int i = 0; i < traceCmds.size(); i++)
-                    {
-                        cmpCmds[i].x = traceCmds[i].GetX()*result.pixTomm;
-                        cmpCmds[i].y = traceCmds[i].GetY()*result.pixTomm*-1;
-                        cmpCmds[i].z = traceCmds[i].GetZ()*result.pixTomm;
-                    }
-                    vector<OutCommand> outCmds = step_mov(cmpCmds, mmPerStep, mmPerStep, mmPerStep);
+                    vector<OutCommand> outCmds;
+
+                    App_MMGtoCMDs(mmgString, outCmds, traceCmds, mmPerStep, result.pixTomm);
 
                     // Convert the vector to a buffer
                     int l = outCmds.size();

@@ -384,13 +384,121 @@ int App_OpenFile(HWND hwnd, WCHAR* szFilePath, CHAR* &FileBuffer, BOOL LoadFile,
     return 0;
 }
 
-int App_GetTraceInputs(DlgStrct_MaxCopper& result)
+int App_GetTraceInputs(DlgStrct_MaxCopper& result, HWND hwndParent)
 {
-
+    if(DialogBoxParam(GetModuleHandle(NULL), MAKEINTRESOURCE(IDD_MAXCPR), hwndParent, (DLGPROC)DlgProc_MaxCopper, (LPARAM)(&result)) == ID_OK)
+    {
+        if(!result.valid)
+        {
+            MessageBox(NULL, "Please enter correct numbers in the text fields", "Error", MB_OK | MB_ICONERROR);
+            return 0;
+        }
+    }
+    else
+    {
+        return 0;
+    }
+    return 1;
 }
 
-int App_PMtoMMG(PixelMatrix* pm, string& mmg);
-int App_SaveMMG(LPWSTR swzPath, const string& mmg);
-int App_SaveImageFromMMG(LPWSTR swzPath, const string& mmg);
-int App_MMGtoCMDs(const string& mmg, std::vector<OutCommand>& cmds, const float mmPerStep);
-int App_SaveCMDs(LPWSTR swzPath,  const std::vector<OutCommand>& cmds);
+int App_BitmaptoMMG(bitmap_image* pTraceImage, std::string& mmg, const DlgStrct_MaxCopper& result, std::vector<Command>& pixCmds, bool simplify)
+{
+    PixelMatrix pm(pTraceImage->width(), pTraceImage->height());
+    for(int i = 0; i < pTraceImage->width(); i++)
+    {
+        for(int j = 0; j < pTraceImage->height(); j++)
+        {
+            rgb_t color = pTraceImage->get_pixel(i, j);
+            if(color.red != 255 || color.green != 255 || color.blue != 255)
+            {
+                pm.SetPixelState(i, j, ISOLATE);
+            }
+        }
+    }
+    pixCmds = TracePixelMatrix(&pm, result.zTop, result.zBottom);
+    if(simplify)
+        pixCmds = SimplifyCommandsXY(pixCmds);
+    mmg = CommandsString(pixCmds, result.pixTomm, true);
+    return 1;
+}
+
+int App_SaveMMG(const LPWSTR swzPath, const std::string& mmg)
+{
+    HANDLE hfile_mmg = CreateFileW(swzPath, GENERIC_WRITE, FILE_SHARE_READ, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
+    if(hfile_mmg != INVALID_HANDLE_VALUE)
+    {
+        DWORD writtenBytes;
+        if(WriteFile(hfile_mmg, mmg.c_str(), mmg.size(), &writtenBytes, NULL))
+        {
+            printf("Successfully written the output file out.mmg with total amount of %d bytes written\n", writtenBytes);
+        }
+        else
+        {
+            printf("ERROR ## Failed to write the output file out.mmg with total amount of %d bytes written\n", writtenBytes);
+            return 0;
+        }
+        CloseHandle(hfile_mmg);
+    }
+    else
+    {
+        printf("ERROR ## Failed to create the output mmg file\n");
+        return 0;
+    }
+    return 1;
+}
+
+int App_SaveImageFromPixCmds(const LPSTR szPath, const std::vector<Command>& pixCmds, unsigned int width, unsigned int height)
+{
+    bitmap_image img2(width, height);
+    img2.set_all_channels(255);
+    DetailedCheck(pixCmds, img2).img.save_image(szPath);
+    return 1;
+}
+
+int App_MMGtoCMDs(const std::string& mmg, std::vector<OutCommand>& cmds, std::vector<Command>& pixCmds, const float mmPerStep, const float pixTomm)
+{
+    vector<CompressedCommand> cmpCmds(pixCmds.size());
+    for(int i = 0; i < pixCmds.size(); i++)
+    {
+        cmpCmds[i].x = pixCmds[i].GetX()*pixTomm;
+        cmpCmds[i].y = pixCmds[i].GetY()*pixTomm*-1;
+        cmpCmds[i].z = pixCmds[i].GetZ()*pixTomm;
+    }
+    cmds = step_mov(cmpCmds, mmPerStep, mmPerStep, mmPerStep);
+    return 1;
+}
+
+int App_SaveCMDs(const LPWSTR swzPath,  const std::vector<OutCommand>& cmds, HWND hwndParent)
+{
+    // Convert the vector to a buffer
+    int l = cmds.size();
+    __int8* outBuff = new __int8[l*4];
+    for(int i = 0; i < l*4; i += 4)
+    {
+        outBuff[i] = cmds[i/4].acc;
+        outBuff[i+1] = cmds[i/4].x;
+        outBuff[i+2] = cmds[i/4].y;
+        outBuff[i+3] = cmds[i/4].z;
+    }
+
+    HANDLE hfile_cmd = CreateFileW(L"./out.hex", GENERIC_WRITE, FILE_SHARE_READ, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
+    if(hfile_cmd != INVALID_HANDLE_VALUE)
+    {
+        DWORD writtenBytes;
+        if(WriteFile(hfile_cmd, outBuff, l*4, &writtenBytes, NULL))
+        {
+            printf("Successfully written the output file out.hex with total amount of %d bytes written\n", writtenBytes);
+        }
+        else
+        {
+            printf("ERROR ## Failed to write the output file out.hex with total amount of %d bytes written\n", writtenBytes);
+        }
+        CloseHandle(hfile_cmd);
+    }
+    else
+    {
+        printf("ERROR ## Failed to create the output hex file\n");
+    }
+    delete[] outBuff;
+    MessageBox(hwndParent, "Successfully created files out.hex, out.mmg, and out.bmp", "Success", MB_OK | MB_ICONINFORMATION);
+}

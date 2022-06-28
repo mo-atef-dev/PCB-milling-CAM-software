@@ -7,6 +7,8 @@
 #include <stdio.h>
 #include <tchar.h>
 #include <string>
+#include "tracebmp.h"
+#include "tracecheck.h"
 #include "resource.h"
 #include "bitmap_image.hpp"
 #include "cmncontrols.h"
@@ -65,12 +67,12 @@ int App_OpenTraceImage(HWND hwnd);
 int App_OpenCopperImage(HWND hwnd);
 int App_OpenFile(HWND hwnd, WCHAR* szFilePath, CHAR* &FileBuffer, BOOL LoadFile, const LPCWSTR lpstrFilter, DWORD nFilterIndex);
 
-int App_GetTraceInputs(DlgStrct_MaxCopper& result);
-int App_PMtoMMG(PixelMatrix* pm, string& mmg);
-int App_SaveMMG(LPWSTR swzPath, const string& mmg);
-int App_SaveImageFromMMG(LPWSTR swzPath, const string& mmg);
-int App_MMGtoCMDs(const string& mmg, std::vector<OutCommand>& cmds, const float mmPerStep);
-int App_SaveCMDs(LPWSTR swzPath,  const std::vector<OutCommand>& cmds);
+int App_GetTraceInputs(DlgStrct_MaxCopper& result, HWND hwndParent);
+int App_BitmaptoMMG(bitmap_image* pTraceImage, std::string& mmg, const DlgStrct_MaxCopper& result, std::vector<Command>& traceCmds, bool simplify = true);
+int App_SaveMMG(const LPWSTR swzPath, const std::string& mmg);
+int App_SaveImageFromPixCmds(const LPSTR szPath, const std::vector<Command>& pixCmds, unsigned int width, unsigned int height);
+int App_MMGtoCMDs(const std::string& mmg, std::vector<OutCommand>& cmds, std::vector<Command>& pixCmds, const float mmPerStep, const float pixTomm);
+int App_SaveCMDs(const LPWSTR swzPath,  const std::vector<OutCommand>& cmds, HWND hwndParent);
 
 /// Proc functions
 BOOL CALLBACK DlgProc_MaxCopper(HWND hwndDlg, UINT message, WPARAM wParam, LPARAM lParam);

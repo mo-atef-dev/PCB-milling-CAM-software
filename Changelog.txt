@@ -12,3 +12,8 @@ Changes:
 -Added text manipulation function to most common controls.
 -Fixed an error where the output compressed commands were only 1/4 of the actual number of commands
 -Added initial implementation to separating the mmg and cmd generation code to different reusable functions
+
+-- Version 2022.5.16
+
+Changes:
+-
