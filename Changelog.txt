@@ -1,3 +1,5 @@
+Each version is named according to the date work has started on it (right after the commit of the previous version).
+
 -- Version 2022.5.9
 
 Changes:
@@ -29,3 +31,12 @@ Changes:
 - When a command file is generated in a session, it is automatically set as the command file for downloading
 - Added usb.cpp and usb.h from Ahmed Abdulazeem for USB downloading feature
 - Added forgotten (return r) statements to the end of each App_Open function
+
+-- Version 2022.7.4
+
+- Added maxCupper_loading header and source files from Joseph and adapted the project to them, but haven't added the new drawing features correctly yet.
+- mmPerStep is set to 0.02
+- Started migration to stepPermm instead of mmPerStep
+- Replaced Kerolos cmd.cpp with a stripped down version (not including acceleration) because the original one was bugged
+- Added default values to max copper dialog
+- Fixed a bug where output commands are generated wrong when they are generated from gerber files

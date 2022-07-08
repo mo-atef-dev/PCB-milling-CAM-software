@@ -1,3 +1,4 @@
+
 #include "usb.h"
 
 int usb_send( unsigned char *arr, unsigned char *name)
@@ -51,7 +52,7 @@ int usb_send( unsigned char *arr, unsigned char *name)
 
     name_size[i++]='\0';
 
-    while(arr[chars_counter] != '\0' && arr[chars_counter+1] != '\0' && arr[chars_counter+2] != '\0' &&  arr[chars_counter+3] != '\0')
+    while(arr[chars_counter] != '\0' || arr[chars_counter+1] != '\0' || arr[chars_counter+2] != '\0' ||  arr[chars_counter+3] != '\0')
     {
         chars_counter+=4;
     }
@@ -73,23 +74,29 @@ int usb_send( unsigned char *arr, unsigned char *name)
 
     counter_64=(chars_counter/64);
 
-
+	/////To Send Name and Size
 	ret = libusb_bulk_transfer(handle, USB_ENDPOINT_OUT, name_size, length,
 			&actual_write, USB_TIMEOUT);
 
-
+	//////////////////////////////////////////////////
     for(k=0;k<counter_64;k++)
     {
         ret = libusb_bulk_transfer(handle, USB_ENDPOINT_OUT, arr+64*k, length,
                 &actual_write, USB_TIMEOUT);
     }
-
-    int z=0;
-    while(last_flag && (arr[counter_64*64+z]!='\0'))
+	//////////////////////////////////////////////////////////////////
+    
+	int z=0;
+    if(last_flag)
+    while((arr[counter_64*64+z]!='\0' || arr[counter_64*64+z+1]!='\0'|| arr[counter_64*64+z+2]!='\0' || arr[counter_64*64+z+3]!='\0'))
     {
-        last_64[z]=arr[counter_64*64+z];
-        z++;
+        last_64[z]	=arr[counter_64*64+z];
+		last_64[z+1]=arr[counter_64*64+z+1];
+		last_64[z+2]=arr[counter_64*64+z+2];
+		last_64[z+3]=arr[counter_64*64+z+3];
+        z+=4;
     }
+	
     if(last_flag)
     {
 
@@ -100,11 +107,18 @@ int usb_send( unsigned char *arr, unsigned char *name)
     unsigned char *ptr;
     ptr = new unsigned char[chars_counter+1];
 
-    printf("Write : %s \n\n",arr);           //will be deleted
+    printf("\n\n size : %d \n\n",chars_counter);
 
+    printf("\n\n write  : \n");           //will be deleted
 
-    //////////////////////////Verification///////////////////////
-    while(read_64<counter_64)
+    for (int i=0;i<chars_counter;i++)
+        printf("%d",arr[i]);
+
+         printf("\n\n");
+    
+	//////////////////////////Verification///////////////////////
+    
+	while(read_64<counter_64)
     {
         ret = libusb_bulk_transfer(handle, USB_ENDPOINT_IN, read_arr, length,
                 &actual_write, USB_TIMEOUT);
@@ -132,11 +146,15 @@ int usb_send( unsigned char *arr, unsigned char *name)
 
     }
 
-    printf("Read  : %s \n\n",ptr);      //will be deleted
+    printf("\n\n Read  : \n");      //will be deleted
 
+    for (int i=0;i<chars_counter;i++)
+        printf("%d",ptr[i]);
+
+         printf("\n\n");
 
     k=0;
-    while(k<=chars_counter)
+    while(k<chars_counter)
     {
         if(ptr[k]!=arr[k])
         {

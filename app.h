@@ -14,6 +14,7 @@
 #include "cmncontrols.h"
 
 #include "cmds.h"
+#include "maxCupper_loading.h"
 
 using namespace std;
 

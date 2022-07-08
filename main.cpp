@@ -73,7 +73,8 @@ const int layersItemsSpacing = 20;
 const int drawMargin = 10;
 
 /* Program constants */
-const float mmPerStep = 0.1;
+const float mmPerStep = 0.02;
+const int stepPermm = 50;
 
 /* Other variables */
 HMENU menu;
@@ -97,7 +98,7 @@ int WINAPI WinMain (HINSTANCE hThisInstance,
     /* Use default icon and mouse-pointer */
     wincl.hIcon = LoadIcon (GetModuleHandle(NULL), MAKEINTRESOURCE(IDI_ICON));
     wincl.hIconSm = LoadIcon (GetModuleHandle(NULL), MAKEINTRESOURCE(IDI_ICON));
-    wincl.hCursor = LoadCursor (NULL, IDC_CROSS);
+    wincl.hCursor = LoadCursor (NULL, IDC_ARROW);
     wincl.lpszMenuName = MAKEINTRESOURCE(RSRC_MENU);                 /* No menu */
     wincl.cbClsExtra = 0;                      /* No extra bytes after the window class */
     wincl.cbWndExtra = 0;                      /* structure or the window instance */
@@ -385,15 +386,18 @@ LRESULT CALLBACK WindowProcedure (HWND hwnd, UINT message, WPARAM wParam, LPARAM
 
                     App_MMGtoCMDs(mmgString, outCmds, traceCmds, mmPerStep, result.pixTomm);
 
+                    // Add terminating command
+                    outCmds.push_back({0, 0, 0, 0});
+
                     // Convert the vector to a buffer
                     int l = outCmds.size();
                     __int8* outBuff = new __int8[l*4];
                     for(int i = 0; i < l*4; i += 4)
                     {
-                        outBuff[i] = outCmds[i/4].acc;
-                        outBuff[i+1] = outCmds[i/4].x;
-                        outBuff[i+2] = outCmds[i/4].y;
-                        outBuff[i+3] = outCmds[i/4].z;
+                        outBuff[i] = outCmds[i/4].x;
+                        outBuff[i+1] = outCmds[i/4].y;
+                        outBuff[i+2] = outCmds[i/4].z;
+                        outBuff[i+3] = outCmds[i/4].acc;
                     }
 
                     HANDLE hfile_cmd = CreateFileW(L"./out.hex", GENERIC_WRITE, FILE_SHARE_READ, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
@@ -451,7 +455,7 @@ LRESULT CALLBACK WindowProcedure (HWND hwnd, UINT message, WPARAM wParam, LPARAM
                     }
 
                     MessageBox(hwnd, "Generation of Max-Copper will start. Press OK to continue", "Info", MB_OK | MB_ICONINFORMATION);
-                    DrawGerberOnBitmab(hwnd, szGerberBuffer, szBorderBuffer, szDrillBuffer, NULL, NULL, NULL, NULL, NULL);
+                    DrawGerberOnBitmab(hwnd, szGerberBuffer, szBorderBuffer, szDrillBuffer, 10.0, true);
                     PixelMatrix pm(bitmapObject.GetWidth(), bitmapObject.GetHeight());
                     for(int i = 0; i < bitmapObject.GetWidth(); i++)
                     {
@@ -499,14 +503,9 @@ LRESULT CALLBACK WindowProcedure (HWND hwnd, UINT message, WPARAM wParam, LPARAM
 
                     /// Create a file to store the resulting compressed commands
                     /// Use the resulting mmg commands to generate the compressed 4 byte commands
-                    vector<CompressedCommand> cmpCmds(traceCmds.size());
-                    for(int i = 0; i < traceCmds.size(); i++)
-                    {
-                        cmpCmds[i].x = traceCmds[i].GetX()*result.pixTomm;
-                        cmpCmds[i].y = traceCmds[i].GetY()*result.pixTomm*-1;
-                        cmpCmds[i].z = traceCmds[i].GetZ()*result.pixTomm;
-                    }
-                    vector<OutCommand> outCmds = step_mov(cmpCmds, mmPerStep, mmPerStep, mmPerStep);
+                    vector<OutCommand> outCmds;
+
+                    App_MMGtoCMDs(mmgString, outCmds, traceCmds, mmPerStep, result.pixTomm);
 
                     // Add terminating command
                     outCmds.push_back({0, 0, 0, 0});
@@ -514,7 +513,7 @@ LRESULT CALLBACK WindowProcedure (HWND hwnd, UINT message, WPARAM wParam, LPARAM
                     // Convert the vector to a buffer
                     int l = outCmds.size();
                     __int8* outBuff = new __int8[l*4];
-                    for(int i = 0; i < l; i += 4)
+                    for(int i = 0; i < l*4; i += 4)
                     {
                         outBuff[i] = outCmds[i/4].x;
                         outBuff[i+1] = outCmds[i/4].y;

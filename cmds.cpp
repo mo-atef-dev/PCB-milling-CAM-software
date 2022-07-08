@@ -1,693 +1,247 @@
-#include <iostream>
-#include <fstream>
-#include<cmath>
 #include "cmds.h"
-#include<string>
-#include<bitset>
-#include<string.h>
-#include<vector>
 
-using namespace std;
-
-vector<OutCommand> vout;
-
-struct link //one element of list
+struct StepCommand
 {
-    __int8 speed1,speed2;
-    __int8 acc;
-    int diststep;
-    int stepx,stepy,stepz;
-    link* next;
-    link* prev;
-
+     int x;
+     int y;
+     int z;
 };
-class chspeed
+
+static int sign(int x)
 {
-private:
-    link *head;
-    link *tail;
-public:
-
-    chspeed();
-    void Add_Line(__int8 speed,int stepx,int stepy,int stepz,__int8 acc);
-    void checkspeed();
-    void Split_and_Writ();
-    void pr();
-
-};
-chspeed::chspeed()
-{
-    head = new link;
-    tail = new link;
-
-    head->next=tail;
-    head->acc=0;
-    head->diststep=0;
-    head->speed1=0;
-    head->speed2=0;
-    head->stepx=0;
-    head->stepy=0;
-    head->stepz=0;
-
-    tail->prev=head;
-    tail->acc=0;
-    tail->diststep=0;
-    tail->speed1=0;
-    tail->speed2=0;
-    tail->stepx=0;
-    tail->stepy=0;
-    tail->stepz=0;
-    tail->next = NULL;
+    if(x > 0)
+        return 1;
+    else if(x < 0)
+        return -1;
+    else
+        return 0;
 }
-void chspeed::Add_Line(__int8 speed,int stepx,int stepy,int stepz,__int8 acc)    //add line at the back
+
+static unsigned char signBit(int x)
 {
-    //cout <<"add"<<endl;
+    if(x < 0)
+        return 1u;
+    else
+        return 0;
+}
 
+static std::vector<StepCommand> DivideCommand(StepCommand cmd)
+{
+    using namespace std;
 
-    link* nline = new link;
+    vector<StepCommand> div;
 
-    if (head->next==tail&&tail->prev==head )
+    // Determine the maximum and secondary axis
+    int maxAxis, secAxis, zAxis;
+
+    zAxis = abs(cmd.z);
+
+    if(abs(cmd.x) > abs(cmd.y))
     {
-        nline->next=tail;
-        tail->prev=nline;
-        head->next=nline;
-        nline->prev=head;
+        maxAxis = abs(cmd.x);
+        secAxis = abs(cmd.y);
     }
     else
     {
-        nline->next = tail;
-        tail->prev->next=nline;
-        nline->prev = tail->prev;
-        tail->prev = nline;
-
+        maxAxis = abs(cmd.y);
+        secAxis = abs(cmd.x);
     }
 
-    nline->stepx = stepx;
-    nline->stepy = stepy;
-    nline->stepz = stepz;
-    nline->speed2 = speed;
-    nline->speed1 = nline->prev->speed2;
-    nline->acc = acc;
-
-    nline->diststep = sqrt(pow(stepx,2)+ pow(stepy,2)+ pow(stepz,2));
-
-}
-
-
-void chspeed::pr()
-{
-
-    int i=1;
-    bitset<8> ac ;
-    link*crr = head->next;
-    while(crr!=tail)
+    // In case there is only motion in Z
+    if(maxAxis == 0)
     {
-        cout <<"command no.: "<<i<<endl;
-
-        cout<<"3D distance: "<<crr->diststep<<" "<<"sp1: "<<(int)crr->speed1<<" "<<"sp2: "<<(int)crr->speed2<<endl;
-        cout<<"stepx: "<<crr->stepx<<" "<<"stepy: "<<crr->stepy<<" "<<"stepz: "<<crr->stepz<<endl;
-        ac = crr->acc;
-        cout<<ac<<endl;
-        cout<<endl;
-
-/*        dfile <<"command no.: "<<i<<endl;
-        dfile<<"3D distance: "<<crr->diststep<<" "<<"sp1: "<<(int)crr->speed1<<" "<<"sp2: "<<(int)crr->speed2<<endl;
-        dfile<<"stepx: "<<crr->stepx<<" "<<"stepy: "<<crr->stepy<<" "<<"stepz: "<<crr->stepz<<endl;
-
-        dfile<<ac<<endl;
-        dfile<<endl;
-*/
-
-
-        crr = crr->next;
-        i++;
-    }
-    cout <<"no. of commands: "<<i<<endl;
-}
-void chspeed::checkspeed()
-{
-
-    int steps_per_speed = 10;
-    link *crr = head->next;
-
-
-
-    int maxstep = max(crr->stepx,max(crr->stepy,crr->stepz));
-    int premaxstep = max(crr->prev->stepx,max(crr->prev->stepy,crr->prev->stepz));
-    while(crr!=tail)
-    {
-        maxstep = max(crr->stepx,max(crr->stepy,crr->stepz));
-        premaxstep = max(crr->prev->stepx,max(crr->prev->stepy,crr->prev->stepz));
-        while ( maxstep < abs(crr->speed2 - crr->speed1)*steps_per_speed )
+        while(zAxis > 255)
         {
-              cout <<"cs                               >>>>>>>>>>>>>>>>>>>>>>>>>"<<endl;
-            if (crr->speed2 > crr->speed1 && (crr->speed1 >= 0) )
-            {
-                crr->speed2 -=1;
-            }
-            else if(crr->speed2 < crr->speed1 && (crr->speed2 >= 0))
-            {
-                crr->speed1 -=1;
-            }
-
-
-            if (premaxstep < abs(crr->prev->speed2 - crr->prev->speed1)*steps_per_speed )
-            {
-                crr = crr->prev;
-                cout<<"back"<<endl;
-            }
-
-
-
+            div.push_back({0, 0, 255*sign(cmd.z)});
+            zAxis -= 255;
         }
- crr = crr->next;
-    }
-
-
-//cout<<"end while check speed"<<endl;
-
-}
-
-void chspeed::Split_and_Writ()
-{
-    int i = 1;
-    link *crr = head->next;
-    while (crr!=tail)
-    {
-
-        SplitLines(crr->stepx, crr->stepy, crr->stepz, crr->speed1, crr->speed2, crr->acc);
-        crr = crr->next;
-        i++;
-    }
-
-}
-
-
-void AddToTextFileB2(unsigned __int8 x,unsigned __int8 y,unsigned __int8 z,unsigned __int8 acc)
-{
-
-
-
-
-    bitset<8> ac;
-    ac = acc;
-    cout<<(int)x<<" "<<(int)y<<" "<<(int)z<<" "<<ac<<endl;
-    OutCommand com;
-    com.x = x;
-    com.y = y;
-    com.z = z;
-    com.acc = acc;
-    vout.push_back(com);
-}
-
-void SplitLines(int x,int y,int z,unsigned __int8 speed1,unsigned __int8 speed2,unsigned __int8 acc)
-{
-    int const sps = 10 , msp=7;
-    int X[28]={0},Y[28]={0},Z[28]={0},S[28]={0},x_c=0,y_c=0,z_c=0,acc2=0,x_s=0,y_s=0,z_s=0;
-    int x_r=0,y_r=0,z_r=0;
-    int x_p=0,y_p=0,z_p=0;
-    int maxstep= max(z,max(x,y)),maxspeed=msp,sts=0,bos=0,ens=0;
-    int upn=0,bodyn=0,downn=0,n=0,i=0,r=0;
-    // cout<<"maxstep"<< maxstep<<endl;
-
-
-    if(maxstep<=sps)
-    {
-       // cout<<"con1"<<endl;
-
-        X[0]=x;
-        Y[0]=y;
-        Z[0]=z;
-        S[0]=speed2;
-        n=1;
-    }
-    else if((maxstep>=(abs(speed1-speed2)*sps))&&(maxstep<((abs(speed1-speed2)*sps)+(sps*2))))   // up only or down only
-    {
-       // cout<<"con2 0"<<endl;
-       n=abs(speed1-speed2);
-       x_p = round(sps *((float)x/(float)maxstep));
-       y_p = round(sps *((float)y/(float)maxstep));
-       z_p = round(sps *((float)z/(float)maxstep));
-       for(i=0;i<n;i++)     /////////////split
-       {
-           X[i]=x_p;
-           Y[i]=y_p;
-           Z[i]=z_p;
-           if(speed1<speed2)
-            S[i]=speed1+i;
-           else
-            S[i]=speed1-(i);
-       }
-
-       if(speed1==speed2)
-       {
-            X[0]=x;
-            Y[0]=y;
-            Z[0]=z;
-            S[0]=speed2;
-            n++;
-       }
-
-     // cout<<"con2 2"<<endl;
-       for(int k=0;k<n;k++)    /////////////cheack
-       {
-           x_c+=X[k];
-           y_c+=Y[k];
-           z_c+=Z[k];
-       }
-       //cout<<"con2 3"<<endl;
-       if(x_c<x || y_c<y || z_c<z)     ///////////res
-       {
-           x_r=abs(x-x_c);
-           y_r=abs(y-y_c);
-           z_r=abs(z-z_c);
-           r=0;
-           for(int k=0;k<x_r;k++)
-           {
-               X[r]+=1;
-               if(r==n-1)
-                    r=0;
-                else
-                    r++;
-           }
-           r=0;
-           for(int k=0;k<y_r;k++)
-           {
-               Y[r]+=1;
-               if(r==n-1)
-                    r=0;
-                else
-                    r++;
-           }
-           r=0;
-           for(int k=0;k<z_r;k++)
-           {
-               Z[r]+=1;
-               if(r==n-1)
-                    r=0;
-                else
-                    r++;
-           }
-       }
-       // cout<<"con2 4"<<endl;
-
-
-    }
-    else if((maxstep<=((abs(speed1-msp)+abs(speed2-msp))*sps)&&(maxstep>=((abs(speed1-speed2)*sps)+(sps*2)))))
-    {
-        //cout<<"con3"<<endl;
-        sts = ((maxspeed-speed1))*sps;
-        ens = ((maxspeed-speed2))*sps;
-        while (maxstep < sts + ens)
+        if(zAxis > 0)
         {
-            maxspeed--;
-            sts = ((maxspeed-speed1))*sps;
-            ens = ((maxspeed-speed2))*sps;
-            if(maxspeed==speed2)
-            {
-                break;
-            }
+            div.push_back({0, 0, zAxis*sign(cmd.z)});
         }
-        upn=sts/sps;
-        downn=ens/sps;
-       x_p = (sps *((float)x/(float)maxstep));
-       y_p = (sps *((float)y/(float)maxstep));
-       z_p = (sps *((float)z/(float)maxstep));
-        for(i=0;i<upn;i++)     /////////////split up
-       {
-           X[i]=x_p;
-           Y[i]=y_p;
-           Z[i]=z_p;
-           S[i]=speed1+(i+1);
-       }
-       for(int k=0;k<downn;k++)     /////////////split down
-       {
-           X[i]=x_p;
-           Y[i]=y_p;
-           Z[i]=z_p;
-           S[i]=maxspeed-k-1;
-           i++;
-       }
-       n=upn+downn;
-       for(int k=0;k<n;k++)    /////////////cheack
-       {
-           x_c+=X[k];
-           y_c+=Y[k];
-           z_c+=Z[k];
-       }
-       if(x_c<x || y_c<y || z_c<z)     ///////////res
-       {
-               x_r=abs(x-x_c);
-               y_r=abs(y-y_c);
-               z_r=abs(z-z_c);
-               r=0;
-               for(int k=0;k<x_r;k++)
-               {
-                   X[r]+=1;
-                   if(r==n-1)
-                        r=0;
-                    else
-                        r++;
-               }
-               r=0;
-               for(int k=0;k<y_r;k++)
-               {
-                   Y[r]+=1;
-                   if(r==n-1)
-                        r=0;
-                    else
-                        r++;
-               }
-               r=0;
-               for(int k=0;k<z_r;k++)
-               {
-                   Z[r]+=1;
-                   if(r==n-1)
-                        r=0;
-                    else
-                        r++;
-               }
-       }
-
+        return div;
     }
-    else if((maxstep>((abs(speed1-msp)+abs(speed2-msp))*sps)))
+
+    /// Variables for the calculations
+
+    int countFull = maxAxis/255;                // Number of commands with max axis at 255
+    int count = countFull + (maxAxis%255 != 0); // Total number of commands needed for the motion
+    int countZ = cmd.z/255;                     // Number of commands needed for Z axis (currently not used)
+
+    // Divisions of the secondary, Z, and max axis
+    int maxAxisFinDiv = maxAxis - countFull*255;
+    int secAxisDiv = 255*secAxis/maxAxis;
+    int secAxisFinDiv = maxAxisFinDiv*secAxis/maxAxis;
+    int zAxisFinDiv = zAxis%255;
+
+    // Number of remaining steps lost due to division
+    int missingSteps = secAxis - (secAxisDiv*countFull + secAxisFinDiv);
+
+    /// First pass (divide the command initially with some error in final position)
+
+    // Add the full commands
+    for(int i = 0; i < countFull; i++)
     {
-       // cout<<"con4"<<endl;
-        sts = ((msp-speed1))*sps;
-        ens = ((msp-speed2))*sps;
-        bos = maxstep-sts-ens;
-
-        upn=sts/sps;
-        downn=ens/sps;
-        bodyn=ceil(bos/255.0);
-        n=upn+downn+bodyn-1;
-        x_p = (sps *((float)x/(float)maxstep));
-        y_p = (sps *((float)y/(float)maxstep));
-        z_p = (sps *((float)z/(float)maxstep));
-        for(i=0;i<upn;i++)     /////////////split up
+        // Add the z part
+        int addZ = 0;
+        if(zAxis > 255)
         {
-            if(upn==0)
-                break;
-
-            X[i]=x_p;
-            Y[i]=y_p;
-            Z[i]=z_p;
-            S[i]=speed1+(i+1);
+            addZ = 255*sign(cmd.z);
+            zAxis -= 255;
         }
-        if(i!=0)
-        i--;
-         //cout<<"con4 test"<<downn<<endl;
-        for(;i<upn+bodyn;i++)     /////////////split body
+        else if(zAxis > 0)
         {
-            if(bos>255)
-            {
-                x_p = (255 *((float)x/(float)maxstep));
-                y_p = (255 *((float)y/(float)maxstep));
-                z_p = (255 *((float)z/(float)maxstep));
-            }
-            else
-            {
-                x_p = (bos *((float)x/(float)maxstep));
-                y_p = (bos *((float)y/(float)maxstep));
-                z_p = (bos *((float)z/(float)maxstep));
-            }
-            X[i]=x_p;
-            Y[i]=y_p;
-            Z[i]=z_p;
-            S[i]=msp;
-            bos-=255;
-            if(bos<=0)
-                break;
-
+            addZ = zAxis*sign(cmd.z);
         }
-        i++;
-        x_p = (sps *((float)x/(float)maxstep));
-        y_p = (sps *((float)y/(float)maxstep));
-        z_p = (sps *((float)z/(float)maxstep));
-        for(int k=0;k<downn;k++)     /////////////split down
-       {
-           if(downn==0)
-                break;
-           X[i]=x_p;
-           Y[i]=y_p;
-           Z[i]=z_p;
-           S[i]=msp-k-1;
-           i++;
-       }
- for(int k=0;k<n;k++)    /////////////cheack
-       {
-           x_c+=X[k];
-           y_c+=Y[k];
-           z_c+=Z[k];
-       }
 
-       if(x_c<x || y_c<y || z_c<z)     ///////////res
-       {
-               x_r=abs(x-x_c);
-               y_r=abs(y-y_c);
-               z_r=abs(z-z_c);
-               r=0;
-               for(int k=0;k<x_r;k++)
-               {
-                   while(X[r]==255)
-                   {
-                       r++;
-                   }
-                   X[r]+=1;
-                   if(r==n-2)
-                        r=0;
-                    else
-                        r++;
-               }
-               r=0;
-               for(int k=0;k<y_r;k++)
-               {
-                   while(Y[r]==255)
-                   {
-                       r++;
-                   }
-                   Y[r]+=1;
-                   if(r==n-2)
-                        r=0;
-                    else
-                        r++;
-               }
-               r=0;
-               for(int k=0;k<z_r;k++)
-               {
-                   while(Z[r]==255)
-                   {
-                       r++;
-                   }
-                   Z[r]+=1;
-                   if(r==n-2)
-                        r=0;
-                    else
-                        r++;
-               }
-       }
-
-
+        if(abs(cmd.x) > abs(cmd.y))
+            div.push_back({255*sign(cmd.x), secAxisDiv*sign(cmd.y), addZ});
+        else
+            div.push_back({secAxisDiv*sign(cmd.x), 255*sign(cmd.y), addZ});
     }
-    else
+
+    // Add the final command if needed
+    if((maxAxis%255 != 0))
     {
-        cout<<"error       >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>";
+        if(abs(cmd.x) > abs(cmd.y))
+            div.push_back({maxAxisFinDiv*sign(cmd.x), secAxisFinDiv*sign(cmd.y), 0});
+        else
+            div.push_back({secAxisFinDiv*sign(cmd.x), maxAxisFinDiv*sign(cmd.y), 0});
     }
-    x_c=0;
-    y_c=0;
-    z_c=0;
-    for(int k=0;k<n;k++)
-       {
-           acc2 = acc | S[k];
-            AddToTextFileB2(X[k],Y[k],Z[k],acc2);
-           x_c+=X[k];
-           y_c+=Y[k];
-           z_c+=Z[k];
-           //cout<<"k "<< k<<"X-->"<<X[k]<<" Y-->"<<Y[k]<<" Z-->"<<Z[k]<<" speed-->"<<S[k]<<endl;
-       }
-    //cout<<"-x-"<<x<<"-y-"<<y<<"-z-"<<z<<endl;
 
-    //cout<<"............ "<<endl;
-    if(x_c!=x || y_c!=y || z_c!=z)
-    cout<<"X_c-->"<<x_c<<"-x-"<<x<<" Y_c-->"<<y_c<<"-y-"<<y<<" Z_c-->"<<z_c<<"-z-"<<z<<"sp1"<<(int)speed1<<"sp2"<<(int)speed2 <<endl;
+    /// Second pass (add any missing steps)
+    for(int i = 0; i < missingSteps; i++)
+    {
+        if(abs(cmd.x) > abs(cmd.y))
+            div[i].y += sign(cmd.y);
+        else
+            div[i].x += sign(cmd.x);
+    }
+
+    // Add missing Z steps
+    while(zAxis > 0)
+    {
+        // Add the z part
+        div.push_back({0, 0, 255*sign(cmd.z)});
+        zAxis -= 255;
+    }
+    if(zAxis > 0)
+    {
+        div.push_back({0, 0, zAxis*sign(cmd.z)});
+    }
+
+    /// Third pass (check the total number of steps in each axis adds up to the original command
+
+    int sumx = 0;
+    int sumy = 0;
+    int sumz = 0;
+
+    for(int i = 0; i < div.size(); i++)
+    {
+        sumx += div[i].x;
+        sumy += div[i].y;
+        sumz += div[i].z;
+    }
+
+    if(sumx != cmd.x || sumy != cmd.y || sumz != cmd.z)
+    {
+        // Additional debugging information can be added here
+        cout << "## Critical error! sum of divided commands don't add up to the original command ##\n";
+    }
+
+    return div;
 }
 
-__int8 GetSpeed3D(float x1,float x2,float x3,float y1,float y2,float y3,float z1,float z2,float z3)
+static StepCommand subCommands(StepCommand c1, StepCommand c2)
 {
-    float Dir_x1 = x2-x1;
-    float Dir_y1 = y2-y1;
-    float Dir_z1 = z2-z1;
-
-    float Dir_x2 = x3-x2;
-    float Dir_y2 = y3-y2;
-    float Dir_z2 = z3-z2;
-
-    float Vector1_abs = pow(Dir_x1,2) + pow(Dir_y1,2) +pow(Dir_z1,2);
-    float Vector2_abs = pow(Dir_x2,2) + pow(Dir_y2,2) +pow(Dir_z2,2);
-
-    Vector1_abs = sqrt(Vector1_abs);
-    Vector2_abs = sqrt(Vector2_abs);
-
-    float total = Vector1_abs * Vector2_abs;
-    float total3D = Dir_x1*Dir_x2 + Dir_y1*Dir_y2 + Dir_z1*Dir_z2;
-
-    float angle = acos(abs(total3D)/total) * 180/3.14;
-    angle = 180 - angle;
-
-    __int8 speed=0;
-
-    int arr[]= {103,116,129,142,155,168,180};
-
-
-
-//cout<<"Angle "<<angle<<endl;
-
-    if (angle <= 90)
-    {
-        speed = 0;
-    }
-    else
-    {
-        for (int i=1 ; i<8; i++)
-        {
-            if (angle <= arr[0]&& angle > 90)
-            {
-                speed = 1;
-            }
-            else if (angle > arr[i] && angle <= arr[i+1])
-            {
-                //  cout <<"speed_b_i "<<i<<endl;
-                //cout <<"speed__b_sp"<<speed<<endl;
-                speed = i;
-                // cout <<"speed_A_i "<<i<<endl;
-                //cout <<"speed__A_sp"<<speed<<endl;
-            }
-
-        }
-    }
-
-    if (speed>7)
-    {
-        speed=7;
-    }
-    else if (speed<0)
-    {
-        speed = 0;
-    }
-    return speed;
+    StepCommand c3;
+    c3.x = c1.x - c2.x;
+    c3.y = c1.y - c2.y;
+    c3.z = c1.z - c2.z;
+    return c3;
 }
 
-vector<OutCommand> step_mov(vector <CompressedCommand> v,float xstep, float ystep, float zstep)
+static StepCommand addCommands(StepCommand c1, StepCommand c2)
 {
+    StepCommand c3;
+    c3.x = c1.x + c2.x;
+    c3.y = c1.y + c2.y;
+    c3.z = c1.z + c2.z;
+    return c3;
+}
 
-    float priv_x, priv_y, priv_z, currnt_x, currnt_y, currnt_z, next_x, next_y, next_z;
-    __int8 currnt_speed;
+std::vector<OutCommand> step_mov(std::vector <CompressedCommand> cmds, int xStepPermm, int yStepPermm, int zStepPermm)
+{
+    using namespace std;
+    vector<StepCommand> divided;
 
-    int step_x, step_y, step_z;
+    // Convert the mm commands to absolute commands in units of motor steps
+    vector<StepCommand> abso(cmds.size());
 
+    // Debug section
+    cout << "Starting to convert commands\n" << "Steps per mm: " << xStepPermm << "\n";
+    // End of debug section
 
-
-
-    chspeed Dlist;
-
-    __int8 acc = 0x00;
-
-    currnt_speed=0;
-
-    priv_x = 0.0;
-    priv_y = 0.0;
-    priv_z = 5.0;
-    currnt_x = 0.0;
-    currnt_y = 0.0;
-    currnt_z = 5.0;
-    /*
-     geting data for next x,y,z
-
-    */
-
-
-
-    for (long long unsigned int i = 0; i < v.size(); ++i)
+    for(int i = 0; i < cmds.size(); i++)
     {
-        /*extracting the data from the MMG file*/
+        abso[i].x = cmds[i].x * xStepPermm;
+        abso[i].y = cmds[i].y * yStepPermm;
+        abso[i].z = cmds[i].z * zStepPermm;
 
-
-
-            //data(line,&next_x,&next_y,&next_z);
-
-            next_x =v[i].x;
-            next_y =v[i].y;
-            next_z =v[i].z;
-
-            step_x = round(abs(next_x - currnt_x) / xstep);
-            step_y = round(abs(next_y - currnt_y) / ystep);
-            step_z = round(abs(next_z - currnt_z) / zstep);
-            // cout << step_x << " " << step_y << " " << step_z << endl;
-
-            acc = 0x00;
-
-            /*Directions*/
-
-            if (currnt_x <= next_x)
-            {
-                acc |= 0x00;
-            }
-            else if (currnt_x > next_x)
-            {
-                acc |= 0x80;
-            }
-
-            if (currnt_y > next_y)
-            {
-                acc |= 0x40;
-            }
-            else if (currnt_y <= next_y)
-            {
-                acc |= 0x00;
-            }
-            if (currnt_z <= next_z)
-            {
-                acc |= 0x00;
-            }
-            else if (currnt_z > next_z)
-            {
-                acc |= 0x20;
-            }
-
-            currnt_speed = GetSpeed3D(priv_x,currnt_x,next_x,priv_y,currnt_y,next_y,priv_z,currnt_z,next_z);
-            //  cout<<currnt_speed<<endl;
-            Dlist.Add_Line(currnt_speed,step_x,step_y,step_z,acc);
-
-
-
-            priv_x = currnt_x;
-            priv_y = currnt_y;
-            priv_z = currnt_z;
-            currnt_x = next_x;
-            currnt_y = next_y;
-            currnt_z = next_z;
-
-
-
+        // Debug section
+        cout << "Absolute step coordinates x: " << abso[i].x << ", y: " << abso[i].y << ", z: " << abso[i].z << "\n";
+        // End of debug section
     }
 
+    // Calculate the relative command list (each command in this list is the difference between two consecutive commands in the absolute list)
+    vector<StepCommand> rel;
 
+    // Initial command from 0, 0, 0
+    rel.push_back(subCommands(abso[0], {0, 0, 0}));
 
-  Dlist.checkspeed();
+    for(int i = 1; i < abso.size(); i++)
+    {
+        rel.push_back(subCommands(abso[i], abso[i-1]));
 
+        // Debug section
+        cout << "Relative commands x: " << rel[i-1].x << ", y: " << rel[i-1].y << ", z: " << rel[i-1].z << "\n";
+        // End of debug section
+    }
 
-  Dlist.Split_and_Writ();
+    // Divide the commands to max 255 steps in any of the 3 directions
+    for(int i = 0; i < rel.size(); i++)
+    {
+        vector<StepCommand> added = DivideCommand(rel[i]);
+        divided.insert(divided.end(), added.begin(), added.end());
+    }
 
+    // Debug section
+    for(int i = 0; i < divided.size(); i++)
+    {
+        cout << "Divided commands x: " << divided[i].x << ", y: " << divided[i].y << ", z: " << divided[i].z << "\n";
+    }
+    // End of debug section
 
-AddToTextFileB2(0,0,0,0);
+    // Output vector
+    vector<OutCommand> out(divided.size());
 
+    // Convert the StepCommand to OutCommand
+    for(int i = 0; i < divided.size(); i++)
+    {
+        out[i].x = abs(divided[i].x);
+        out[i].y = abs(divided[i].y);
+        out[i].z = abs(divided[i].z);
 
+        out[i].acc = 0x01ul; // Constant speed 0x01
+        out[i].acc = out[i].acc | (signBit(divided[i].x) << 7) | (signBit(divided[i].y) << 6) | (signBit(divided[i].z) << 5);
 
-return vout;
+        // Debug section
+        // The + operator before the out[i].x is used to print x in a number format (without it it will be printed as a character)
+        cout << "Final output commands";
+        printf(" x: %hhu, y: %hhu, z: %hhu", out[i].x, out[i].y, out[i].z);
+        cout << ", directions: " << (int)((out[i].acc & 0x80) >> 7) << (int)((out[i].acc & 0x40) >> 6) << (int)((out[i].acc & 0x20) >> 5) << ", speeds: " << (int)(out[i].acc & 0x1F) << "\n";
+        // End of debug section
+    }
 
-
-
-
-
-
+    return out;
 }

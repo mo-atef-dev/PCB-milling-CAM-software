@@ -53,6 +53,7 @@
 		<Unit filename="cmncontrols.cpp" />
 		<Unit filename="cmncontrols.h" />
 		<Unit filename="main.cpp" />
+		<Unit filename="maxCupper_loading.cpp" />
 		<Unit filename="maxCupper_loading.h" />
 		<Unit filename="resource.h" />
 		<Unit filename="resources.rc">

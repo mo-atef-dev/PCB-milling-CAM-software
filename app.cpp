@@ -39,7 +39,7 @@ int App_Initialize(HINSTANCE hThisInstance)
 
     drawCl.hIcon = LoadIcon (GetModuleHandle(NULL), MAKEINTRESOURCE(IDI_ICON));
     drawCl.hIconSm = LoadIcon (GetModuleHandle(NULL), MAKEINTRESOURCE(IDI_ICON));
-    drawCl.hCursor = LoadCursor (NULL, IDC_ARROW);
+    drawCl.hCursor = LoadCursor (NULL, IDC_CROSS);
     drawCl.lpszMenuName = MAKEINTRESOURCE(RSRC_MENU);                 /* No menu */
     drawCl.cbClsExtra = 0;                      /* No extra bytes after the window class */
     drawCl.cbWndExtra = 0;                      /* structure or the window instance */
@@ -103,6 +103,9 @@ LRESULT CALLBACK WinProc_Draw(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPa
 {
     //static CMNStatusBar status_bar;
 
+    static char disp = 0;
+    static bool RBDown = false;
+
     switch(message)
     {
     case WM_CREATE:
@@ -120,6 +123,22 @@ LRESULT CALLBACK WinProc_Draw(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPa
             */
         }
         break;
+    case WM_RBUTTONDOWN:
+        if(RBDown) break;
+        RBDown = true;
+        if(disp == 0)
+            DrawBitmapOnWindow(hwnd,pFactory_, pBitmap_2,wicFactory_);
+        else if(disp == 1)
+            DrawBitmapOnWindow(hwnd,pFactory_, pBitmap_,wicFactory_);
+        else if(disp == 2)
+            DrawBitmapOnWindow(hwnd,pFactory_, pBitmap_3,wicFactory_);
+
+        disp = (disp+1)%3;
+        break;
+
+    case WM_RBUTTONUP:
+        RBDown = false;
+        break;
     default:
         return DefWindowProc (hwnd, message, wParam, lParam);
     }
@@ -132,6 +151,12 @@ BOOL CALLBACK DlgProc_MaxCopper(HWND hwndDlg, UINT message, WPARAM wParam, LPARA
     {
     case WM_INITDIALOG:
         pResult = (DlgStrct_MaxCopper*)lParam;
+
+        // Set the default values of the dialog
+        SetDlgItemText(hwndDlg, IDC_EDIT_PTOM, "0.1");
+        SetDlgItemText(hwndDlg, IDC_EDIT_ZTOP, "10");
+        SetDlgItemText(hwndDlg, IDC_EDIT_ZBOT, "-1");
+
         break;
     case WM_COMMAND:
         switch (LOWORD(wParam))
@@ -478,6 +503,8 @@ int App_SaveImageFromPixCmds(const LPSTR szPath, const std::vector<Command>& pix
 
 int App_MMGtoCMDs(const std::string& mmg, std::vector<OutCommand>& cmds, std::vector<Command>& pixCmds, const float mmPerStep, const float pixTomm)
 {
+    int stepPermm = round(1.0/mmPerStep);
+
     vector<CompressedCommand> cmpCmds(pixCmds.size());
     for(int i = 0; i < pixCmds.size(); i++)
     {
@@ -485,7 +512,7 @@ int App_MMGtoCMDs(const std::string& mmg, std::vector<OutCommand>& cmds, std::ve
         cmpCmds[i].y = pixCmds[i].GetY()*pixTomm*-1;
         cmpCmds[i].z = pixCmds[i].GetZ()*pixTomm;
     }
-    cmds = step_mov(cmpCmds, mmPerStep, mmPerStep, mmPerStep);
+    cmds = step_mov(cmpCmds, stepPermm, stepPermm, stepPermm);
     return 1;
 }
 
