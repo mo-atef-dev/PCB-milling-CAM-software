@@ -34,9 +34,19 @@ Changes:
 
 -- Version 2022.7.4
 
+Changes:
 - Added maxCupper_loading header and source files from Joseph and adapted the project to them, but haven't added the new drawing features correctly yet.
 - mmPerStep is set to 0.02
 - Started migration to stepPermm instead of mmPerStep
 - Replaced Kerolos cmd.cpp with a stripped down version (not including acceleration) because the original one was bugged
 - Added default values to max copper dialog
 - Fixed a bug where output commands are generated wrong when they are generated from gerber files
+
+-- Version 2022.7.8
+
+Changes:
+- (Tracebmp) Fixed radial scan function to account for negative coordinates
+- (Tracebmp) Fixed mistakes in calculation in TraceStart function
+- Added missing file handle closing in both download and App general file open function
+- (Tracebmp) Added clearance function
+- (Tracebmp) Added a "return to origin" command as the final command

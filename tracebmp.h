@@ -4,6 +4,7 @@
 #include <string>
 #include <vector>
 #include <iostream>
+#include <math.h>
 
 #include "bitmap_image.hpp"
 
@@ -135,7 +136,7 @@ Direction InitDirection(const PixelMatrix* matrix, int x, int y);
 
 int RadialScan(PixelMatrix* matrix, int x, int y, int* xx, int* yy);
 
-int Clearance(PixelMatrix* matrix, int x, int y);
+int Clearance(PixelMatrix* matrix, int x, int y, int* xx, int* yy);
 
 string CommandsString(vector<Command> commands, float scale = 0.1f, bool negativeY = false);
 

@@ -380,6 +380,7 @@ int App_OpenFile(HWND hwnd, WCHAR* szFilePath, CHAR* &FileBuffer, BOOL LoadFile,
         // If LoadFile is false, it is assumed only the path to the file is required by the function and the function returns;
         if(LoadFile == false)
         {
+            CloseHandle(hfile);
             return 0;
         }
 
@@ -396,6 +397,7 @@ int App_OpenFile(HWND hwnd, WCHAR* szFilePath, CHAR* &FileBuffer, BOOL LoadFile,
                 if(bytesRead > fileSize)
                 {
                     printf("\nERROR: Number of bytes read is more than the maximum allowed!\n");
+                    CloseHandle(hfile);
                     return 1;
                 }
                 FileBuffer[fileSize]= 0;  // Safe null terminator
@@ -404,8 +406,10 @@ int App_OpenFile(HWND hwnd, WCHAR* szFilePath, CHAR* &FileBuffer, BOOL LoadFile,
             {
                 MessageBox(NULL, "Failed to read file", "Error", MB_OK | MB_ICONERROR);
                 delete[] FileBuffer;
+                CloseHandle(hfile);
                 return 2;
             }
+            CloseHandle(hfile);
         }
         else
         {

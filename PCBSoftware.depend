@@ -64,7 +64,7 @@
 	<math.h>
 	<stdio.h>
 
-1656965377 source:c:\users\mohamed atef\documents\ee school\graduation project\windows software\pcbsoftware_v2\main.cpp
+1657352734 source:c:\users\mohamed atef\documents\ee school\graduation project\windows software\pcbsoftware_v2\main.cpp
 	<tchar.h>
 	<windows.h>
 	<windowsx.h>
@@ -111,13 +111,14 @@
 1652223652 source:c:\users\mohamed atef\documents\ee school\graduation project\windows software\pcbsoftware_v2\cmncontrols.cpp
 	"cmncontrols.h"
 
-1651277800 source:c:\users\mohamed atef\documents\ee school\graduation project\windows software\pcbsoftware_v2\tracebmp.cpp
+1657351818 source:c:\users\mohamed atef\documents\ee school\graduation project\windows software\pcbsoftware_v2\tracebmp.cpp
 	"tracebmp.h"
 
-1650913621 c:\users\mohamed atef\documents\ee school\graduation project\windows software\pcbsoftware_v2\tracebmp.h
+1657350856 c:\users\mohamed atef\documents\ee school\graduation project\windows software\pcbsoftware_v2\tracebmp.h
 	<string>
 	<vector>
 	<iostream>
+	<math.h>
 	"bitmap_image.hpp"
 
 946674000 c:\users\mohamed atef\documents\ee school\graduation project\windows software\pcbsoftware_v2\bitmap_image.hpp
@@ -160,7 +161,7 @@
 
 1656966860 c:\users\mohamed atef\documents\ee school\graduation project\windows software\pcbsoftware_v2\resource.h
 
-1656965825 source:c:\users\mohamed atef\documents\ee school\graduation project\windows software\pcbsoftware_v2\app.cpp
+1657352350 source:c:\users\mohamed atef\documents\ee school\graduation project\windows software\pcbsoftware_v2\app.cpp
 	"app.h"
 
 1656919451 c:\users\mohamed atef\documents\ee school\graduation project\windows software\pcbsoftware_v2\app.h
@@ -186,7 +187,7 @@
 	<cmath>
 	<iostream>
 
-1656441846 source:c:\users\mohamed atef\documents\ee school\graduation project\windows software\pcbsoftware_v2\usb.cpp
+1657048724 source:c:\users\mohamed atef\documents\ee school\graduation project\windows software\pcbsoftware_v2\usb.cpp
 	"usb.h"
 
 1656441933 c:\users\mohamed atef\documents\ee school\graduation project\windows software\pcbsoftware_v2\usb.h

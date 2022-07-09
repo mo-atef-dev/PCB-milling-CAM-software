@@ -108,6 +108,10 @@ vector<Command> TracePixelMatrix(PixelMatrix* matrix, int zTop, int zBottom)
             cout << "Error in TraceStart function with code: " << result << endl;
         }
 
+        // If the current pixel is connected to adjacent checked pixels, start at a checked pixel to make sure the isolation is correct
+        // In other words, call the clearance function
+        Clearance(matrix, tempX, tempY, &tempX, &tempY);
+
         // Go to command to initial position
         commands.push_back(Command(MOVE, tempX, tempY, zTop));
         matrix->SetPixelState(tempX, tempY, CHECKED);
@@ -125,6 +129,9 @@ vector<Command> TracePixelMatrix(PixelMatrix* matrix, int zTop, int zBottom)
 
         // NOTE: Ascending with the mill is now included in the TracePixel function to support legacy TracePixelMatrix function
     }
+
+    // Add the final return to origin command
+    commands.push_back(Command(MOVE, 0, 0, zTop));
 
     return commands;
 }
@@ -148,6 +155,9 @@ int TraceStart(PixelMatrix* matrix, int x, int y, int* xx, int* yy)
     // Store x and y coordinates of each trace iteration
     vector<int> endX;
     vector<int> endY;
+
+    // Check the starting pixel
+    pm1.SetPixelState(startX, startY, CHECKED);
 
     // Loop which checks the starting pixel repeatedly for paths in each direction.
     // When the end of a path is reached, the coordinates of the end is stored in the above vectors.
@@ -185,24 +195,56 @@ int TraceStart(PixelMatrix* matrix, int x, int y, int* xx, int* yy)
     // Calculate the minimum distance between the starting point and each calculated end
     if(endX.size() == 0)
     {
+        // If this is the start point, then this is a drill point (single pixel)
+        if(x == startX && y == startY)
+        {
+            (*xx) = startX;
+            (*yy) = startY;
+
+            cout << "Finished tracing the start" << endl;
+
+            cout << "*xx = "<< (*xx) << endl;
+            cout << "*yy = "<< (*yy) << endl;
+
+            return 0;
+        }
+
+        // In case there are no endpoints and this is not the start point
         cout << "### Error in tracing a path start: no end points are detected." << endl;
         return 1;
     }
 
-    int disX = endX[0] - x;
-    int disY = endY[0] - y;
+    // If only one end is found, then the other end is surely the start position
+    if(endX.size() == 1)
+    {
+        endX.push_back(startX);
+        endY.push_back(startY);
+    }
+
+    // Square distance of the first point
+    int disX = endX[0] - startX;
+    int disY = endY[0] - startY;
     int minSqDis = disX*disX + disY*disY;
     *xx = endX[0]; *yy = endY[0];
 
+    cout << "List of end points:" << endl;
+
     for(int i = 0; i < endX.size(); i++)
     {
-        if((endX[i]*endX[i] + endY[i]*endY[i]) < minSqDis)
+        // Square distance of the current point
+        int tempDisX = endX[i] - startX;
+        int tempDisY = endY[i] - startY;
+        int tempSqDis = tempDisX*tempDisX + tempDisY*tempDisY;
+
+        if(tempSqDis < minSqDis)
         {
-            int disX = endX[i] - x;
-            int disY = endY[i] - y;
-            minSqDis = disX*disX + disY*disY;
+            minSqDis = tempSqDis;
             *xx = endX[i]; *yy = endY[i];
         }
+
+        cout << "endX[" << i << "] = "<< endX[i] << endl;
+        cout << "endY[" << i << "] = "<< endY[i] << endl;
+        cout << "sqDis[" << i << "] = "<< tempSqDis << endl;
     }
 
     cout << "Finished tracing the start" << endl;
@@ -216,10 +258,10 @@ int TraceStart(PixelMatrix* matrix, int x, int y, int* xx, int* yy)
 int RadialScan(PixelMatrix* matrix, int x, int y, int* xx, int* yy)
 {
     // Determine the max radius based on the distance to the edge
-    int pdx = matrix->GetWidth() - x;
-    int ndx = x;
-    int pdy = matrix->GetHeight() - y;
-    int ndy = y;
+    int pdx = abs(matrix->GetWidth() - x);
+    int ndx = abs(x);
+    int pdy = abs(matrix->GetHeight() - y);
+    int ndy = abs(y);
 
     cout << "Starting a radial scan" << endl;
 
@@ -234,7 +276,7 @@ int RadialScan(PixelMatrix* matrix, int x, int y, int* xx, int* yy)
 
     // Start searching in a rectangular fashion and return once a pixel is found
     int curR;
-    for(curR = 0; curR < maxR; curR++)
+    for(curR = 0; curR <= maxR; curR++)
     {
         //cout << "curR = " << curR << ", maxR = " << maxR << endl;
         int i = x - curR;
@@ -283,9 +325,83 @@ int RadialScan(PixelMatrix* matrix, int x, int y, int* xx, int* yy)
     return 0;
 }
 
-int Clearance(PixelMatrix* matrix, int x, int y)
+int Clearance(PixelMatrix* matrix, int x, int y, int* xx, int* yy)
 {
+    int dx = 1;
+    int dy = 0;
 
+
+    // This section basically checks the 8 surrounding pixels in a clockwise fashion and
+    // returns the direction of the first detected correct path.
+    // TO DO: Replace this section with a loop algorithm to make the code more compact.
+    if(matrix->GetPixelState(x+dx, y+dy) == CHECKED)
+    {
+        (*xx) = x + dx;
+        (*yy) = y + dy;
+        return 0;
+    }
+
+    dx = 1; dy = -1;
+    if(matrix->GetPixelState(x+dx, y+dy) == CHECKED)
+    {
+        (*xx) = x + dx;
+        (*yy) = y + dy;
+        return 0;
+    }
+
+    dx = 0; dy = -1;
+    if(matrix->GetPixelState(x+dx, y+dy) == CHECKED)
+    {
+        (*xx) = x + dx;
+        (*yy) = y + dy;
+        return 0;
+    }
+
+    dx = -1; dy = -1;
+    if(matrix->GetPixelState(x+dx, y+dy) == CHECKED)
+    {
+        (*xx) = x + dx;
+        (*yy) = y + dy;
+        return 0;
+    }
+
+    dx = -1; dy = 0;
+    if(matrix->GetPixelState(x+dx, y+dy) == CHECKED)
+    {
+        (*xx) = x + dx;
+        (*yy) = y + dy;
+        return 0;
+    }
+
+    dx = -1; dy = 1;
+    if(matrix->GetPixelState(x+dx, y+dy) == CHECKED)
+    {
+        (*xx) = x + dx;
+        (*yy) = y + dy;
+        return 0;
+    }
+
+    dx = 0; dy = 1;
+    if(matrix->GetPixelState(x+dx, y+dy) == CHECKED)
+    {
+        (*xx) = x + dx;
+        (*yy) = y + dy;
+        return 0;
+    }
+
+    dx = 1; dy = 1;
+    if(matrix->GetPixelState(x+dx, y+dy) == CHECKED)
+    {
+        (*xx) = x + dx;
+        (*yy) = y + dy;
+        return 0;
+    }
+
+    // If there are no surrounding pixels
+    (*xx) = x;
+    (*yy) = y;
+
+    return 0;
 }
 
 vector<Command> TracePixel(PixelMatrix* matrix, int x, int y, int zTop, int zBottom)

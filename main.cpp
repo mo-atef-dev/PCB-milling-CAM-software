@@ -319,6 +319,7 @@ LRESULT CALLBACK WindowProcedure (HWND hwnd, UINT message, WPARAM wParam, LPARAM
                                 if(bytesRead > fileSize)
                                 {
                                     printf("\nERROR: Number of bytes read is more than the maximum allowed!\n");
+                                    CloseHandle(hfile);
                                     break;
                                 }
                             }
@@ -326,8 +327,10 @@ LRESULT CALLBACK WindowProcedure (HWND hwnd, UINT message, WPARAM wParam, LPARAM
                             {
                                 MessageBox(hwnd, "Failed to read commands file", "Error", MB_OK | MB_ICONERROR);
                                 delete[] FileBuffer;
+                                CloseHandle(hfile);
                                 break;
                             }
+                            CloseHandle(hfile);
                         }
                         else
                         {
