@@ -1,7 +1,24 @@
 #include "app.h"
 
+// Debug related header includes
+#if defined(DEBUG)
+#include <stdio.h>
+#else
+#define printf(...)
+#define wprintf(...)
+#endif // defined
+
+/* Class names */
 static TCHAR szLayersClassName[ ] = _T("LayerWindow");
 static TCHAR szDrawClassName[ ] = _T("DrawWindow");
+
+/* Global variables for drawing window coordinates */
+FLOAT origin_x = 0;
+FLOAT origin_y = 0;
+FLOAT img_scale = 1;
+
+/* Global variable to determine drawing mode */
+char disp = 0;
 
 int App_Initialize(HINSTANCE hThisInstance)
 {
@@ -73,6 +90,10 @@ HWND App_CreateLayersWindow(HWND hwnd)
         MessageBox(NULL, "Failed to show layers child window class", "ERROR", MB_OK | MB_ICONERROR);
         return NULL;
     }
+
+    // Init drawing module
+    initializeDrawing(cHwnd);
+
     ShowWindow(cHwnd, SW_SHOW);
     return cHwnd;
 }
@@ -102,25 +123,82 @@ HWND App_CreateDrawingWindow(HWND hwnd)
 LRESULT CALLBACK WinProc_Draw(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
     //static CMNStatusBar status_bar;
-
-    static char disp = 0;
     static bool RBDown = false;
+    static bool LBDown = false;
+
+    static DWORD init_mouse_x = 0;
+    static DWORD init_mouse_y = 0;
 
     switch(message)
     {
-    case WM_CREATE:
-
-        break;
-    case WM_MOUSEMOVE:
+        case WM_PAINT:
         {
-            /*
+            PAINTSTRUCT ps;
+            HDC hdc = BeginPaint(hwnd, &ps);
+
+            scaleResize(hwnd,pRT,img_scale,origin_x,origin_y,D2DpBitmap);
+
+            EndPaint(hwnd, &ps);
+        }
+        break;
+        case WM_LBUTTONDOWN:
+        {
+            LBDown = true;
+            init_mouse_x = GET_X_LPARAM(lParam);
+            init_mouse_y = GET_Y_LPARAM(lParam);
+            printf("\nLeft mouse clicked\n");
+        }
+        break;
+        case WM_LBUTTONUP:
+        {
+            LBDown = false;
+            printf("\nLeft mouse clicked\n");
+        }
+        break;
+        case WM_MOUSEMOVE:
+        {
             char xstr[20];
             char ystr[20];
-            sprintf_s(xstr, 20, "X : %d", GET_X_LPARAM(lParam));
-            sprintf_s(ystr, 20, "Y : %d", GET_Y_LPARAM(lParam));
+            if(LBDown)
+            {
+                // Split into to assignments to avoid doing unsigned arithmetic
+                origin_x += GET_X_LPARAM(lParam);
+                origin_x -= init_mouse_x;
+                origin_y += GET_Y_LPARAM(lParam);
+                origin_y -= init_mouse_y;
+                printf("## Left Button is held with delta (%d, %d) ##\n", GET_X_LPARAM(lParam) - init_mouse_x, GET_Y_LPARAM(lParam) - init_mouse_y);
+                printf("Origin = (%f, %f)\n", origin_x, origin_y);
+                init_mouse_x = GET_X_LPARAM(lParam);
+                init_mouse_y = GET_Y_LPARAM(lParam);
+                InvalidateRect(hwnd, NULL, FALSE);
+            }
+            sprintf_s(xstr, 20, "Center X : %.1f", (-origin_x));
+            sprintf_s(ystr, 20, "Center Y : %.1f", (-origin_y));
             status_bar.UpdateText(1, xstr);
             status_bar.UpdateText(2, ystr);
-            */
+        }
+        break;
+        case WM_MOUSEWHEEL:
+        {
+            // To preserve small wheel increments across different messages
+            static int delta = 0;
+            char zoomstr[20];
+            delta += GET_WHEEL_DELTA_WPARAM(wParam);
+
+            if(delta >= WHEEL_DELTA)
+            {
+                img_scale *= ZOOMIN_FAC;
+                delta = 0;
+                InvalidateRect(hwnd, NULL, FALSE);
+            }
+            else if(delta <= -WHEEL_DELTA)
+            {
+                img_scale *= ZOOMOUT_FAC;
+                delta = 0;
+                InvalidateRect(hwnd, NULL, FALSE);
+            }
+            sprintf_s(zoomstr, 20, "Zoom : %.1f%%", img_scale*100.0);
+            status_bar.UpdateText(4, zoomstr);
         }
         break;
     case WM_RBUTTONDOWN:
@@ -132,7 +210,6 @@ LRESULT CALLBACK WinProc_Draw(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPa
             DrawBitmapOnWindow(hwnd,pFactory_, pBitmap_,wicFactory_);
         else if(disp == 2)
             DrawBitmapOnWindow(hwnd,pFactory_, pBitmap_3,wicFactory_);
-
         disp = (disp+1)%3;
         break;
 
@@ -154,8 +231,8 @@ BOOL CALLBACK DlgProc_MaxCopper(HWND hwndDlg, UINT message, WPARAM wParam, LPARA
 
         // Set the default values of the dialog
         SetDlgItemText(hwndDlg, IDC_EDIT_PTOM, "0.1");
-        SetDlgItemText(hwndDlg, IDC_EDIT_ZTOP, "10");
-        SetDlgItemText(hwndDlg, IDC_EDIT_ZBOT, "-1");
+        SetDlgItemText(hwndDlg, IDC_EDIT_ZTOP, "2");
+        SetDlgItemText(hwndDlg, IDC_EDIT_ZBOT, "-0.25");
 
         break;
     case WM_COMMAND:
@@ -227,18 +304,20 @@ LRESULT CALLBACK WinProc_Layers(HWND hwnd, UINT message, WPARAM wParam, LPARAM l
     static CMNTextBox txtBox_drills;
     static CMNTextBox txtBox_trace;
     static CMNTextBox txtBox_cmds;
+    static CMNTextBox txtBox_mmg;
 
     static CMNLabel label_copper;
     static CMNLabel label_border;
     static CMNLabel label_drills;
     static CMNLabel label_trace;
     static CMNLabel label_cmds;
+    static CMNLabel label_mmg;
 
-    static CMNButton btn_copper;
-    static CMNButton btn_border;
-    static CMNButton btn_drills;
-    static CMNButton btn_trace;
-    static CMNButton btn_cmds;
+    //static CMNButton btn_copper;
+    //static CMNButton btn_border;
+    //static CMNButton btn_drills;
+    //static CMNButton btn_trace;
+    //static CMNButton btn_cmds;
 
     switch(message)
     {
@@ -250,28 +329,32 @@ LRESULT CALLBACK WinProc_Layers(HWND hwnd, UINT message, WPARAM wParam, LPARAM l
             int yoffset = layersPadding;
 
             label_copper.InitLabel(hwnd, 0, GetModuleHandle(NULL), layersPadding, yoffset, layersWidth-2*layersPadding, 20, WS_CHILD | WS_VISIBLE, "Gerber Copper File");
-            txtBox_copper.InitBox(hwnd, 0, GetModuleHandle(NULL), layersPadding, yoffset + layersItemsSpacing/4 + 20, layersWidth-2*layersPadding-layersItemsSpacing*4, 20, CMNTXT_READONLY);
-            btn_copper.InitButton(hwnd, 0, GetModuleHandle(NULL), layersWidth - layersItemsSpacing*4, yoffset + layersItemsSpacing/4 + 20, layersItemsSpacing*4-layersPadding, 20, BS_DEFPUSHBUTTON | WS_CHILD | WS_VISIBLE, "Browse");
+            txtBox_copper.InitBox(hwnd, 0, GetModuleHandle(NULL), layersPadding, yoffset + layersItemsSpacing/4 + 20, layersWidth-4*layersPadding, 20, CMNTXT_READONLY);
+            //btn_copper.InitButton(hwnd, 0, GetModuleHandle(NULL), layersWidth - layersItemsSpacing*4, yoffset + layersItemsSpacing/4 + 20, layersItemsSpacing*4-layersPadding, 20, BS_DEFPUSHBUTTON | WS_CHILD | WS_VISIBLE, "Browse");
 
             yoffset = yoffset + layersItemsSpacing/4 + 20 + layersItemsSpacing*2;
             label_border.InitLabel(hwnd, 0, GetModuleHandle(NULL), layersPadding, yoffset, layersWidth-2*layersPadding, 20, WS_CHILD | WS_VISIBLE, "Gerber Border File");
-            txtBox_border.InitBox(hwnd, 0, GetModuleHandle(NULL), layersPadding, yoffset + layersItemsSpacing/4 + 20, layersWidth-2*layersPadding-layersItemsSpacing*4, 20, CMNTXT_READONLY);
-            btn_border.InitButton(hwnd, 0, GetModuleHandle(NULL), layersWidth - layersItemsSpacing*4, yoffset + layersItemsSpacing/4 + 20, layersItemsSpacing*4-layersPadding, 20, BS_DEFPUSHBUTTON | WS_CHILD | WS_VISIBLE, "Browse");
+            txtBox_border.InitBox(hwnd, 0, GetModuleHandle(NULL), layersPadding, yoffset + layersItemsSpacing/4 + 20, layersWidth-4*layersPadding, 20, CMNTXT_READONLY);
+            //btn_border.InitButton(hwnd, 0, GetModuleHandle(NULL), layersWidth - layersItemsSpacing*4, yoffset + layersItemsSpacing/4 + 20, layersItemsSpacing*4-layersPadding, 20, BS_DEFPUSHBUTTON | WS_CHILD | WS_VISIBLE, "Browse");
 
             yoffset = yoffset + layersItemsSpacing/4 + 20 + layersItemsSpacing*2;
             label_drills.InitLabel(hwnd, 0, GetModuleHandle(NULL), layersPadding, yoffset, layersWidth-2*layersPadding, 20, WS_CHILD | WS_VISIBLE, "Gerber Drill File");
-            txtBox_drills.InitBox(hwnd, 0, GetModuleHandle(NULL), layersPadding, yoffset + layersItemsSpacing/4 + 20, layersWidth-2*layersPadding-layersItemsSpacing*4, 20, CMNTXT_READONLY);
-            btn_drills.InitButton(hwnd, 0, GetModuleHandle(NULL), layersWidth - layersItemsSpacing*4, yoffset + layersItemsSpacing/4 + 20, layersItemsSpacing*4-layersPadding, 20, BS_DEFPUSHBUTTON | WS_CHILD | WS_VISIBLE, "Browse");
+            txtBox_drills.InitBox(hwnd, 0, GetModuleHandle(NULL), layersPadding, yoffset + layersItemsSpacing/4 + 20, layersWidth-4*layersPadding, 20, CMNTXT_READONLY);
+            //btn_drills.InitButton(hwnd, 0, GetModuleHandle(NULL), layersWidth - layersItemsSpacing*4, yoffset + layersItemsSpacing/4 + 20, layersItemsSpacing*4-layersPadding, 20, BS_DEFPUSHBUTTON | WS_CHILD | WS_VISIBLE, "Browse");
 
             yoffset = yoffset + layersItemsSpacing/4 + 20 + layersItemsSpacing*2;
             label_trace.InitLabel(hwnd, 0, GetModuleHandle(NULL), layersPadding, yoffset, layersWidth-2*layersPadding, 20, WS_CHILD | WS_VISIBLE, "Isolation Image File");
-            txtBox_trace.InitBox(hwnd, 0, GetModuleHandle(NULL), layersPadding, yoffset + layersItemsSpacing/4 + 20, layersWidth-2*layersPadding-layersItemsSpacing*4, 20, CMNTXT_READONLY);
-            btn_trace.InitButton(hwnd, 0, GetModuleHandle(NULL), layersWidth - layersItemsSpacing*4, yoffset + layersItemsSpacing/4 + 20, layersItemsSpacing*4-layersPadding, 20, BS_DEFPUSHBUTTON | WS_CHILD | WS_VISIBLE, "Browse");
+            txtBox_trace.InitBox(hwnd, 0, GetModuleHandle(NULL), layersPadding, yoffset + layersItemsSpacing/4 + 20, layersWidth-4*layersPadding, 20, CMNTXT_READONLY);
+            //btn_trace.InitButton(hwnd, 0, GetModuleHandle(NULL), layersWidth - layersItemsSpacing*4, yoffset + layersItemsSpacing/4 + 20, layersItemsSpacing*4-layersPadding, 20, BS_DEFPUSHBUTTON | WS_CHILD | WS_VISIBLE, "Browse");
+
+            yoffset = yoffset + layersItemsSpacing/4 + 20 + layersItemsSpacing*2;
+            label_mmg.InitLabel(hwnd, 0, GetModuleHandle(NULL), layersPadding, yoffset, layersWidth-2*layersPadding, 20, WS_CHILD | WS_VISIBLE, "MMG File");
+            txtBox_mmg.InitBox(hwnd, 0, GetModuleHandle(NULL), layersPadding, yoffset + layersItemsSpacing/4 + 20, layersWidth-4*layersPadding, 20, CMNTXT_READONLY);
 
             yoffset = yoffset + layersItemsSpacing/4 + 20 + layersItemsSpacing*2;
             label_cmds.InitLabel(hwnd, 0, GetModuleHandle(NULL), layersPadding, yoffset, layersWidth-2*layersPadding, 20, WS_CHILD | WS_VISIBLE, "Generated Commands File");
-            txtBox_cmds.InitBox(hwnd, 0, GetModuleHandle(NULL), layersPadding, yoffset + layersItemsSpacing/4 + 20, layersWidth-2*layersPadding-layersItemsSpacing*4, 20, CMNTXT_READONLY);
-            btn_cmds.InitButton(hwnd, 0, GetModuleHandle(NULL), layersWidth - layersItemsSpacing*4, yoffset + layersItemsSpacing/4 + 20, layersItemsSpacing*4-layersPadding, 20, BS_DEFPUSHBUTTON | WS_CHILD | WS_VISIBLE, "Browse");
+            txtBox_cmds.InitBox(hwnd, 0, GetModuleHandle(NULL), layersPadding, yoffset + layersItemsSpacing/4 + 20, layersWidth-4*layersPadding, 20, CMNTXT_READONLY);
+            //btn_cmds.InitButton(hwnd, 0, GetModuleHandle(NULL), layersWidth - layersItemsSpacing*4, yoffset + layersItemsSpacing/4 + 20, layersItemsSpacing*4-layersPadding, 20, BS_DEFPUSHBUTTON | WS_CHILD | WS_VISIBLE, "Browse");
         }
         break;
     case WMU_UPDATE:
@@ -286,6 +369,9 @@ LRESULT CALLBACK WinProc_Layers(HWND hwnd, UINT message, WPARAM wParam, LPARAM l
 
         if(szTracePath)
             txtBox_trace.SetText(szTracePath, MAX_PATH);
+
+        if(szMMGPath)
+            txtBox_mmg.SetText(szMMGPath, MAX_PATH);
 
         if(szCmdsPath)
             txtBox_cmds.SetText(szCmdsPath, MAX_PATH);
@@ -310,7 +396,7 @@ int App_OpenGbrFile(HWND hwnd)
 
 int App_OpenDrillFile(HWND hwnd)
 {
-    int r = App_OpenFile(hwnd, szDrillPath, szDrillBuffer, true, L"Drill (.drl)\0*.drl\0", 1);
+    int r = App_OpenFile(hwnd, szDrillPath, szDrillBuffer, true, L"Drill (.drl, .xln)\0*.drl;*.xln\0", 1);
     if(r == 0) EnableMenuItem(menu, ID_MAXCPR, MF_ENABLED);
     return r;
 }
@@ -332,9 +418,22 @@ int App_OpenTraceImage(HWND hwnd)
     if(r == 0) EnableMenuItem(menu, ID_MMG, MF_ENABLED);
     return r;
 }
+
 int App_OpenCopperImage(HWND hwnd)
 {
     App_OpenFile(hwnd, szGerberPath, szGerberBuffer, true, L"All\0*.*\0Text (.txt)\0*.TXT\0Gerber (.gbr, .gb)\0*.gbr;*.gb\0Image (.bmp)\0*.bmp\0", 3);
+}
+
+int App_OpenMMGFile(HWND hwnd)
+{
+    CHAR* szTempBuffer = NULL;
+    int r = App_OpenFile(hwnd, szMMGPath, szTempBuffer, true, L"All\0*.*\0Model Master 3 Axis (.mmg)\0*.mmg\0", 1);
+    string tempStr(szTempBuffer);
+    mmgString = tempStr;
+    delete[] szTempBuffer;
+    szTempBuffer = NULL;
+    if(r == 0) EnableMenuItem(menu, ID_CMDS, MF_ENABLED);
+    return r;
 }
 
 int App_OpenCommands(HWND hwnd)
@@ -497,17 +596,21 @@ int App_SaveMMG(const LPWSTR swzPath, const std::string& mmg)
     return 1;
 }
 
-int App_SaveImageFromPixCmds(const LPSTR szPath, const std::vector<Command>& pixCmds, unsigned int width, unsigned int height)
+int App_SaveImageFromPixCmds(const LPWSTR swzPath, const std::vector<Command>& pixCmds, unsigned int width, unsigned int height)
 {
+    // Convert wide string to an ascii string
+    wstring tempW(swzPath);
+    string temp(tempW.begin(), tempW.end());
+
     bitmap_image img2(width, height);
     img2.set_all_channels(255);
-    DetailedCheck(pixCmds, img2).img.save_image(szPath);
+    DetailedCheck(pixCmds, img2).img.save_image(temp);
     return 1;
 }
 
 int App_MMGtoCMDs(const std::string& mmg, std::vector<OutCommand>& cmds, std::vector<Command>& pixCmds, const float mmPerStep, const float pixTomm)
 {
-    int stepPermm = round(1.0/mmPerStep);
+    //int stepPermm = round(1.0/mmPerStep);
 
     vector<CompressedCommand> cmpCmds(pixCmds.size());
     for(int i = 0; i < pixCmds.size(); i++)
@@ -516,7 +619,16 @@ int App_MMGtoCMDs(const std::string& mmg, std::vector<OutCommand>& cmds, std::ve
         cmpCmds[i].y = pixCmds[i].GetY()*pixTomm*-1;
         cmpCmds[i].z = pixCmds[i].GetZ()*pixTomm;
     }
-    cmds = step_mov(cmpCmds, stepPermm, stepPermm, stepPermm);
+    SetMaxSpeed(7);
+    cmds = step_mov(cmpCmds, mmPerStep, mmPerStep, mmPerStep);
+    return 1;
+}
+
+int App_MMGtoCMDs(const std::string& mmg, std::vector<OutCommand>& cmds, std::vector<CompressedCommand>& cmpCmds, const float mmPerStep)
+{
+    //int stepPermm = round(1.0/mmPerStep);
+    SetMaxSpeed(7);
+    cmds = step_mov(cmpCmds, mmPerStep, mmPerStep, mmPerStep);
     return 1;
 }
 
@@ -527,13 +639,13 @@ int App_SaveCMDs(const LPWSTR swzPath,  const std::vector<OutCommand>& cmds, HWN
     __int8* outBuff = new __int8[l*4];
     for(int i = 0; i < l*4; i += 4)
     {
-        outBuff[i] = cmds[i/4].acc;
-        outBuff[i+1] = cmds[i/4].x;
-        outBuff[i+2] = cmds[i/4].y;
-        outBuff[i+3] = cmds[i/4].z;
+        outBuff[i] = cmds[i/4].x;
+        outBuff[i+1] = cmds[i/4].y;
+        outBuff[i+2] = cmds[i/4].z;
+        outBuff[i+3] = cmds[i/4].acc;
     }
 
-    HANDLE hfile_cmd = CreateFileW(L"./out.hex", GENERIC_WRITE, FILE_SHARE_READ, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
+    HANDLE hfile_cmd = CreateFileW(swzPath, GENERIC_WRITE, FILE_SHARE_READ, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
     if(hfile_cmd != INVALID_HANDLE_VALUE)
     {
         DWORD writtenBytes;
@@ -552,5 +664,4 @@ int App_SaveCMDs(const LPWSTR swzPath,  const std::vector<OutCommand>& cmds, HWN
         printf("ERROR ## Failed to create the output hex file\n");
     }
     delete[] outBuff;
-    MessageBox(hwndParent, "Successfully created files out.hex, out.mmg, and out.bmp", "Success", MB_OK | MB_ICONINFORMATION);
 }

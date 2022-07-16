@@ -16,32 +16,36 @@
 LANGUAGE LANG_NEUTRAL, SUBLANG_NEUTRAL
 RSRC_MENU MENU
 {
-    POPUP "&File"
+    POPUP "File"
     {
-        MENUITEM "&New", ID_EXIT, GRAYED
-        MENUITEM SEPARATOR
-        MENUITEM "&Project Wizard", 0, GRAYED
-        MENUITEM SEPARATOR
         MENUITEM "&Open Gerber Copper File", ID_OPEN
         MENUITEM "Open Gerber Drill File", ID_OPENDRILL
         MENUITEM "Open Gerber Border File", ID_OPENBORD
         MENUITEM SEPARATOR
-        MENUITEM "Open Copper Image", ID_OPENCOPPER, GRAYED
         MENUITEM "Open Isolation Image", ID_OPENTRACE
         MENUITEM SEPARATOR
+        MENUITEM "Open MMG File", ID_OPENMMG
         MENUITEM "Open Commands File", ID_OPENCMDS
-        MENUITEM SEPARATOR
-        MENUITEM "&Save", ID_SAVE, GRAYED
-        MENUITEM "Save As", ID_SAVE, GRAYED
         MENUITEM SEPARATOR
         MENUITEM "&Exit", ID_EXIT
     }
-    POPUP "&Edit"
+    POPUP "Edit"
     {
         MENUITEM "&Generate MaxCopper", ID_MAXCPR, GRAYED
         MENUITEM "&Generate Trace MMG", ID_MMG, GRAYED
+        MENUITEM "&Generate Commands from MMG", ID_CMDS, GRAYED
         MENUITEM SEPARATOR
         MENUITEM "&Download Commands to the Machine", ID_DOWNLOAD
+    }
+    POPUP "View"
+    {
+        MENUITEM "View Copper Layer", ID_VCPR
+        MENUITEM "View MaxCopper Layer", ID_VMAX
+        MENUITEM "View Both Layers", ID_VBOTH
+    }
+    POPUP "Help"
+    {
+        MENUITEM "About", ID_HELP
     }
 }
 
@@ -51,20 +55,48 @@ RSRC_MENU MENU
 // Dialog resources
 //
 LANGUAGE LANG_NEUTRAL, SUBLANG_NEUTRAL
-IDD_MAXCPR DIALOG 0, 0, 186, 134
+IDD_ABOUT DIALOG 0, 0, 186, 95
+STYLE DS_3DLOOK | DS_CENTER | DS_MODALFRAME | DS_SHELLFONT | WS_CAPTION | WS_VISIBLE | WS_POPUP | WS_SYSMENU
+EXSTYLE WS_EX_WINDOWEDGE
+CAPTION "About"
+FONT 8, "Ms Shell Dlg"
+{
+    LTEXT           "(c) 2022 Assiut University\r\n\r\nPCB Software is a program to aid in manufacturing printed circuit boards for prototyping", 0, 10, 10, 160, 33, SS_LEFT, WS_EX_LEFT
+    DEFPUSHBUTTON   "OK", IDOK, 127, 72, 50, 14, 0, WS_EX_LEFT
+}
+
+
+
+LANGUAGE LANG_NEUTRAL, SUBLANG_NEUTRAL
+IDD_MAXCPR DIALOG 0, 0, 186, 145
 STYLE DS_3DLOOK | DS_CENTER | DS_MODALFRAME | DS_SHELLFONT | WS_CAPTION | WS_VISIBLE | WS_POPUP | WS_SYSMENU
 CAPTION "Generate Max-Copper Trace Path"
 FONT 8, "Ms Shell Dlg"
 {
-    EDITTEXT        IDC_EDIT_ZBOT, 95, 72, 80, 14, ES_AUTOHSCROLL, WS_EX_LEFT
-    RTEXT           "Safe Z distance (mm):", 0, 19, 53, 70, 9, SS_RIGHT, WS_EX_LEFT
-    RTEXT           "Cutting Z depth (mm):", 0, 21, 74, 68, 9, SS_RIGHT, WS_EX_LEFT
-    GROUPBOX        "Options", 0, 7, 7, 172, 95, 0, WS_EX_LEFT
-    PUSHBUTTON      "Cancel", ID_CANCEL, 127, 112, 50, 14, 0, WS_EX_LEFT
-    DEFPUSHBUTTON   "OK", ID_OK, 67, 112, 50, 14, 0, WS_EX_LEFT
     EDITTEXT        IDC_EDIT_PTOM, 95, 32, 80, 14, ES_AUTOHSCROLL, WS_EX_LEFT
     EDITTEXT        IDC_EDIT_ZTOP, 95, 51, 80, 14, ES_AUTOHSCROLL, WS_EX_LEFT
+    EDITTEXT        IDC_EDIT_ZBOT, 95, 72, 80, 14, ES_AUTOHSCROLL, WS_EX_LEFT
+    EDITTEXT        IDC_EDIT_ZBOT, 95, 92, 80, 14, ES_AUTOHSCROLL, WS_EX_LEFT
+    DEFPUSHBUTTON   "OK", ID_OK, 67, 122, 50, 14, 0, WS_EX_LEFT
+    PUSHBUTTON      "Cancel", ID_CANCEL, 127, 122, 50, 14, 0, WS_EX_LEFT
+    RTEXT           "Safe Z distance (mm):", 0, 19, 53, 70, 9, SS_RIGHT, WS_EX_LEFT
+    RTEXT           "Cutting Z depth (mm):", 0, 21, 74, 68, 9, SS_RIGHT, WS_EX_LEFT
+    GROUPBOX        "Options", 0, 7, 7, 172, 110, 0, WS_EX_LEFT
     RTEXT           "Pixel Dimensions (mm):", 0, 17, 33, 72, 11, SS_RIGHT, WS_EX_LEFT
+    RTEXT           "Max speed index (1->7)", 0, 15, 95, 74, 9, SS_RIGHT, WS_EX_LEFT
+}
+
+
+
+LANGUAGE LANG_NEUTRAL, SUBLANG_NEUTRAL
+IDD_PROGRESS DIALOG 0, 0, 186, 72
+STYLE DS_3DLOOK | DS_CENTER | DS_MODALFRAME | DS_SHELLFONT | WS_CAPTION | WS_VISIBLE | WS_POPUP | WS_SYSMENU
+CAPTION "Dialog"
+FONT 8, "Ms Shell Dlg"
+{
+    LTEXT           "Loading... Please wait", 0, 17, 12, 70, 9, SS_LEFT, WS_EX_LEFT
+    CONTROL         "", 0, PROGRESS_CLASS, PBS_SMOOTH, 17, 27, 155, 15, WS_EX_LEFT
+    PUSHBUTTON      "Cancel", IDCANCEL, 67, 47, 50, 14, 0, WS_EX_LEFT
 }
 
 

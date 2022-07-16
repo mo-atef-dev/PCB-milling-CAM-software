@@ -3,15 +3,17 @@
 
 #include <string>
 #include <vector>
-#include <iostream>
 #include <math.h>
+
+#if defined(DEBUG)
+#include <iostream>
+#endif
 
 #include "bitmap_image.hpp"
 
 using namespace std;
 
 #warning "This file is missing some documentation, please add it when you can."
-#warning "Depth preprocesser constant is defined arbitrarly and should be changed."
 #warning "PixelMatrix class is missing house keeping functions."
 
 /// Legacy constants to indicate start and end z positions. Currently, they are replaced by arguments to the functions TracePixelMatrix and TracePixel

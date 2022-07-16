@@ -50,3 +50,25 @@ Changes:
 - Added missing file handle closing in both download and App general file open function
 - (Tracebmp) Added clearance function
 - (Tracebmp) Added a "return to origin" command as the final command
+
+-- Version 2022.7.10
+
+Changes:
+- Refactored code in max copper menu command by replacing common code with function calls
+- Added Joseph updates for max copper and drawing module
+- Replaced cmds.cpp with latest implementation by Kerolos (note that this needed a change in the header file to use the function that requires float inputs, and a change in app.cpp in MMGtoCMDs function to input mmPerStep instead of stepPermm)
+
+-- Version 2022.7.15
+
+Changes:
+- All debug messages in tracebmp.cpp file are enclosed in #if defined(DEBUG) directive to allow easy removal and insersion of debug messages
+- Added a feature to mark pixels which have been visited twice by the tool as green
+- Added latest team mates files
+- Removed GUI buttons
+- Removed unused menu items
+- Added the ability to open an MMG file and a menu item to convert the MMG to commands
+- Output file paths are now strict as following:
+ -- For max copper the output is in the same directory as the copper layer
+ -- For MMG conversion to commands, the output is in the same directory as the source MMG
+ -- For MMG and commands generation from an image, the output is in the same directory as the source image
+- Adjusted the release build settings

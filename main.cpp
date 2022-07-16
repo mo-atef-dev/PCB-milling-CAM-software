@@ -10,6 +10,7 @@
 #include <windows.h>
 #include <windowsx.h>
 #include <Commdlg.h>
+#include <shlwapi.h>
 #include "cmds.h"
 #include "tracebmp.h"
 #include "tracecheck.h"
@@ -18,14 +19,11 @@
 // My header files
 #include "resource.h"
 
-// Software constants
-#define ZOOMIN_FAC 1.1
-#define ZOOMOUT_FAC 0.9
-
 // Headers from other team members
 #include "cmncontrols.h"
 #include "maxCupper_loading.h"
 #include "usb.h"
+#include "mmgparse.h"
 
 // Debug related header includes
 #if defined(DEBUG)
@@ -41,6 +39,9 @@ LRESULT CALLBACK WindowProcedure (HWND, UINT, WPARAM, LPARAM);
 /*  Make the class name into a global variable  */
 TCHAR szClassName[ ] = _T("PCBWindow");
 
+/* Global variables for components */
+CMNStatusBar status_bar;
+
 /* Global variable to hold opened file */
 WCHAR szGerberPath[MAX_PATH] = L"";
 CHAR* szGerberBuffer = NULL;
@@ -51,6 +52,7 @@ CHAR* szDrillBuffer = NULL;
 WCHAR szBorderPath[MAX_PATH] = L"";
 CHAR* szBorderBuffer = NULL;
 
+WCHAR szMMGPath[MAX_PATH] = L"";
 WCHAR szCmdsPath[MAX_PATH] = L"";
 
 string mmgString;
@@ -58,11 +60,7 @@ string mmgString;
 WCHAR szTracePath[MAX_PATH] = L"";
 bitmap_image* pTraceImage;
 
-
-/* Global variables for drawing window coordinates */
-FLOAT origin_x = 0;
-FLOAT origin_y = 0;
-FLOAT img_scale = 1;
+WCHAR szOutPath[MAX_PATH] = L"";
 
 /* Constants for layers window layout */
 const int layersWidth = 400;
@@ -146,6 +144,7 @@ int WINAPI WinMain (HINSTANCE hThisInstance,
 
     /// Init common controls
     DOInitCommonControls();
+    initializeDrawing(hwnd);
 
     /* Run the message loop. It will run until GetMessage() returns 0 */
     while (GetMessage (&messages, NULL, 0, 0))
@@ -172,7 +171,6 @@ LRESULT CALLBACK WindowProcedure (HWND hwnd, UINT message, WPARAM wParam, LPARAM
     static BOOL bLButtonHold = FALSE;
     static int init_mouse_x = 0;
     static int init_mouse_y = 0;
-    static CMNStatusBar status_bar;
     static HWND layerWnd = NULL;
     static HWND drawWnd = NULL;
 
@@ -190,9 +188,9 @@ LRESULT CALLBACK WindowProcedure (HWND hwnd, UINT message, WPARAM wParam, LPARAM
 
             // Create the status bar
             status_bar.InitBar(hwnd, 0, GetModuleHandle(NULL), 5);
-            status_bar.UpdateText(0, "Status text");
+            status_bar.UpdateText(0, " ");
             status_bar.UpdateText(3, "mm");
-            status_bar.UpdateText(4, "No tool path is generated");
+            status_bar.UpdateText(4, "Zoom : 100.0%");
 
             // Create the side layers window
             layerWnd = App_CreateLayersWindow(hwnd);
@@ -219,59 +217,6 @@ LRESULT CALLBACK WindowProcedure (HWND hwnd, UINT message, WPARAM wParam, LPARAM
                 status_bar.ResizeBar();
             }
             break;
-        case WM_LBUTTONDOWN:
-        {
-            bLButtonHold = TRUE;
-            init_mouse_x = GET_X_LPARAM(lParam);
-            init_mouse_y = GET_Y_LPARAM(lParam);
-            printf("\nLeft mouse clicked\n");
-        }
-        break;
-        case WM_LBUTTONUP:
-        {
-            bLButtonHold = FALSE;
-            printf("\nLeft mouse clicked\n");
-        }
-        break;
-        case WM_MOUSEMOVE:
-        {
-            if(bLButtonHold)
-            {
-                origin_x += GET_X_LPARAM(lParam) - init_mouse_x;
-                origin_y += GET_Y_LPARAM(lParam) - init_mouse_y;
-                init_mouse_x = GET_X_LPARAM(lParam);
-                init_mouse_y = GET_Y_LPARAM(lParam);
-                InvalidateRect(hwnd, NULL, FALSE);
-                printf("## Left Button is held ##");
-            }
-            char xstr[20];
-            char ystr[20];
-            sprintf_s(xstr, 20, "X : %d", GET_X_LPARAM(lParam));
-            sprintf_s(ystr, 20, "Y : %d", GET_Y_LPARAM(lParam));
-            status_bar.UpdateText(1, xstr);
-            status_bar.UpdateText(2, ystr);
-        }
-        break;
-        case WM_MOUSEWHEEL:
-        {
-            // To preserve small wheel increments across different messages
-            static int delta = 0;
-            delta += GET_WHEEL_DELTA_WPARAM(wParam);
-
-            if(delta >= WHEEL_DELTA)
-            {
-                img_scale *= ZOOMIN_FAC;
-                delta = 0;
-                InvalidateRect(hwnd, NULL, FALSE);
-            }
-            else if(delta <= -WHEEL_DELTA)
-            {
-                img_scale *= ZOOMOUT_FAC;
-                delta = 0;
-                InvalidateRect(hwnd, NULL, FALSE);
-            }
-            printf("\nMouse wheel action, img_scale = %f\n", img_scale);
-        }
         break;
         case WM_COMMAND:
         {
@@ -292,8 +237,23 @@ LRESULT CALLBACK WindowProcedure (HWND hwnd, UINT message, WPARAM wParam, LPARAM
             case ID_OPENTRACE:
                     App_OpenTraceImage(hwnd);
                 break;
+            case ID_OPENMMG:
+                    App_OpenMMGFile(hwnd);
+                break;
             case ID_OPENCMDS:
                     App_OpenCommands(hwnd);
+                break;
+            case ID_VCPR:
+                disp = 0;
+                DrawBitmapOnWindow(drawWnd,pFactory_, pBitmap_2,wicFactory_);
+                break;
+            case ID_VMAX:
+                disp = 1;
+                DrawBitmapOnWindow(drawWnd,pFactory_, pBitmap_,wicFactory_);
+                break;
+            case ID_VBOTH:
+                disp = 2;
+                DrawBitmapOnWindow(drawWnd,pFactory_, pBitmap_3,wicFactory_);
                 break;
             case ID_DOWNLOAD:
                 {
@@ -347,6 +307,7 @@ LRESULT CALLBACK WindowProcedure (HWND hwnd, UINT message, WPARAM wParam, LPARAM
                             if(r)
                             {
                                 printf("Successfully downloaded the commands\n");
+                                MessageBox(hwnd, "Successfully downloaded the commands", "Success", MB_OK | MB_ICONINFORMATION);
                                 break;
                             }
                             else
@@ -366,6 +327,48 @@ LRESULT CALLBACK WindowProcedure (HWND hwnd, UINT message, WPARAM wParam, LPARAM
                     }
                 }
                 break;
+            case ID_CMDS:
+                {
+                    vector<OutCommand> outCmds;
+                    vector<CompressedCommand> cmpCmds;
+                    char* tempArr;
+
+                    if(mmgString.size() < 2)
+                    {
+                        MessageBox(hwnd, "Error in generating commands: MMG commands too short", "Error", MB_OK | MB_ICONERROR);
+                        return 0;
+                    }
+
+                    tempArr = new char[mmgString.length()+1];
+                    strcpy(tempArr, mmgString.c_str());
+                    cmpCmds = MMG_PARSE(tempArr);
+                    delete[] tempArr;
+
+                    App_MMGtoCMDs(mmgString, outCmds, cmpCmds, mmPerStep);
+
+                    // Add terminating command
+                    outCmds.push_back({0, 0, 0, 0});
+
+                    // Save file to the directory of the open MMG
+                    BOOL res;
+                    wcscpy(szOutPath, szMMGPath);
+                    res = PathRemoveFileSpecW(szOutPath);
+                    if(!res)
+                    {
+                        MessageBox(hwnd, "Error in saving file, file not saved", "Error", MB_OK | MB_ICONERROR);
+                        return 0;
+                    }
+                    res = PathAppendW(szOutPath, L"out.bin");
+                    if(!res)
+                    {
+                        MessageBox(hwnd, "Error in saving file, file not saved", "Error", MB_OK | MB_ICONERROR);
+                        return 0;
+                    }
+                    App_SaveCMDs(szOutPath, outCmds, hwnd);
+
+                    MessageBox(hwnd, "Successfully created file out.bin", "Success", MB_OK | MB_ICONINFORMATION);
+                }
+                break;
             case ID_MMG:
                 {
                     DlgStrct_MaxCopper result;
@@ -379,12 +382,38 @@ LRESULT CALLBACK WindowProcedure (HWND hwnd, UINT message, WPARAM wParam, LPARAM
 
                     App_BitmaptoMMG(pTraceImage, mmgString, result, traceCmds, true);
 
-                    App_SaveMMG(L"out.mmg", mmgString);
+                    // Set the output path to the directory of the image source
+                    BOOL res;
+                    wcscpy(szOutPath, szTracePath);
+                    res = PathRemoveFileSpecW(szOutPath);
+                    if(!res)
+                    {
+                        MessageBox(hwnd, "Error in saving mmg file, file not saved", "Error", MB_OK | MB_ICONERROR);
+                        return 0;
+                    }
+                    res = PathAppendW(szOutPath, L"out.mmg");
+                    if(!res)
+                    {
+                        MessageBox(hwnd, "Error in saving mmg file, file not saved", "Error", MB_OK | MB_ICONERROR);
+                        return 0;
+                    }
 
-                    App_SaveImageFromPixCmds("out.bmp", traceCmds, pTraceImage->width(), pTraceImage->height());
+                    /// Create a file to store the resulting mmg commands
+                    App_SaveMMG(szOutPath, mmgString);
 
+                    // Replace extension to save a bitmap
+                    res = PathRenameExtensionW(szOutPath, L".bmp");
+                    if(!res)
+                    {
+                        MessageBox(hwnd, "Error in saving image, file not saved", "Error", MB_OK | MB_ICONERROR);
+                        return 0;
+                    }
+
+                    /// Draw the output image
+                    App_SaveImageFromPixCmds(szOutPath, traceCmds, pTraceImage->width(), pTraceImage->height());
                     printf("Finished mmg file creation\n");
 
+                    /// Use the resulting mmg commands to generate the compressed 4 byte commands
                     vector<OutCommand> outCmds;
 
                     App_MMGtoCMDs(mmgString, outCmds, traceCmds, mmPerStep, result.pixTomm);
@@ -392,37 +421,18 @@ LRESULT CALLBACK WindowProcedure (HWND hwnd, UINT message, WPARAM wParam, LPARAM
                     // Add terminating command
                     outCmds.push_back({0, 0, 0, 0});
 
-                    // Convert the vector to a buffer
-                    int l = outCmds.size();
-                    __int8* outBuff = new __int8[l*4];
-                    for(int i = 0; i < l*4; i += 4)
+                    /// Create a file to store the resulting compressed commands
+                    // Replace extension to save the binary file
+                    res = PathRenameExtensionW(szOutPath, L".bin");
+                    if(!res)
                     {
-                        outBuff[i] = outCmds[i/4].x;
-                        outBuff[i+1] = outCmds[i/4].y;
-                        outBuff[i+2] = outCmds[i/4].z;
-                        outBuff[i+3] = outCmds[i/4].acc;
+                        MessageBox(hwnd, "Error in saving file, file not saved", "Error", MB_OK | MB_ICONERROR);
+                        return 0;
                     }
 
-                    HANDLE hfile_cmd = CreateFileW(L"./out.hex", GENERIC_WRITE, FILE_SHARE_READ, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
-                    if(hfile_cmd != INVALID_HANDLE_VALUE)
-                    {
-                        DWORD writtenBytes;
-                        if(WriteFile(hfile_cmd, outBuff, l*4, &writtenBytes, NULL))
-                        {
-                            printf("Successfully written the output file out.hex with total amount of %d bytes written\n", writtenBytes);
-                        }
-                        else
-                        {
-                            printf("ERROR ## Failed to write the output file out.hex with total amount of %d bytes written\n", writtenBytes);
-                        }
-                        CloseHandle(hfile_cmd);
-                    }
-                    else
-                    {
-                        printf("ERROR ## Failed to create the output hex file\n");
-                    }
-                    delete[] outBuff;
-                    MessageBox(hwnd, "Successfully created files out.hex, out.mmg, and out.bmp", "Success", MB_OK | MB_ICONINFORMATION);
+                    App_SaveCMDs(szOutPath, outCmds, hwnd);
+
+                    MessageBox(hwnd, "Successfully created files out.bin, out.mmg, and out.bmp", "Success", MB_OK | MB_ICONINFORMATION);
                 }
                 break;
             case ID_MAXCPR:
@@ -444,21 +454,18 @@ LRESULT CALLBACK WindowProcedure (HWND hwnd, UINT message, WPARAM wParam, LPARAM
                 if(szGerberBuffer)
                 {
                     DlgStrct_MaxCopper result;
-                    if(DialogBoxParam(GetModuleHandle(NULL), MAKEINTRESOURCE(IDD_MAXCPR), hwnd, (DLGPROC)DlgProc_MaxCopper, (LPARAM)(&result)) == ID_OK)
-                    {
-                        if(!result.valid)
-                        {
-                            MessageBox(NULL, "Please enter correct numbers in the text fields", "Error", MB_OK | MB_ICONERROR);
-                            return 0;
-                        }
-                    }
-                    else
+
+                    if(App_GetTraceInputs(result, hwnd) == 0)
                     {
                         return 0;
                     }
 
                     MessageBox(hwnd, "Generation of Max-Copper will start. Press OK to continue", "Info", MB_OK | MB_ICONINFORMATION);
-                    DrawGerberOnBitmab(hwnd, szGerberBuffer, szBorderBuffer, szDrillBuffer, 10.0, true);
+
+                    // This part should be called in a different thread
+                    DrawGerberOnBitmab(hwnd, szGerberBuffer, szBorderBuffer, szDrillBuffer, result.pixTomm, true);
+                    // end
+
                     PixelMatrix pm(bitmapObject.GetWidth(), bitmapObject.GetHeight());
                     for(int i = 0; i < bitmapObject.GetWidth(); i++)
                     {
@@ -474,37 +481,37 @@ LRESULT CALLBACK WindowProcedure (HWND hwnd, UINT message, WPARAM wParam, LPARAM
                     traceCmds = SimplifyCommandsXY(traceCmds);
                     mmgString = CommandsString(traceCmds, result.pixTomm, true);
 
-                    /// Create a file to store the resulting mmg commands
-                    HANDLE hfile_mmg = CreateFileW(L"./out.mmg", GENERIC_WRITE, FILE_SHARE_READ, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
-                    if(hfile_mmg != INVALID_HANDLE_VALUE)
+                    // Set the output path to the directory of the copper layer source
+                    BOOL res;
+                    wcscpy(szOutPath, szGerberPath);
+                    res = PathRemoveFileSpecW(szOutPath);
+                    if(!res)
                     {
-                        DWORD writtenBytes;
-                        if(WriteFile(hfile_mmg, mmgString.c_str(), mmgString.size(), &writtenBytes, NULL))
-                        {
-                            printf("Successfully written the output file out.mmg with total amount of %d bytes written\n", writtenBytes);
-                        }
-                        else
-                        {
-                            printf("ERROR ## Failed to write the output file out.mmg with total amount of %d bytes written\n", writtenBytes);
-                        }
-                        CloseHandle(hfile_mmg);
+                        MessageBox(hwnd, "Error in saving mmg file, file not saved", "Error", MB_OK | MB_ICONERROR);
+                        return 0;
                     }
-                    else
+                    res = PathAppendW(szOutPath, L"out.mmg");
+                    if(!res)
                     {
-                        printf("ERROR ## Failed to create the output mmg file\n");
+                        MessageBox(hwnd, "Error in saving mmg file, file not saved", "Error", MB_OK | MB_ICONERROR);
+                        return 0;
+                    }
+
+                    /// Create a file to store the resulting mmg commands
+                    App_SaveMMG(szOutPath, mmgString);
+
+                    // Replace extension to save a bitmap
+                    res = PathRenameExtensionW(szOutPath, L".bmp");
+                    if(!res)
+                    {
+                        MessageBox(hwnd, "Error in saving image, file not saved", "Error", MB_OK | MB_ICONERROR);
+                        return 0;
                     }
 
                     /// Draw the output image
-
-                    bitmap_image img2(bitmapObject.GetWidth(), bitmapObject.GetHeight());
-                    img2.set_all_channels(255);
-                    DetailedCheck(traceCmds, img2).img.save_image("out.bmp");
-
-                    ///
-
+                    App_SaveImageFromPixCmds(szOutPath, traceCmds, bitmapObject.GetWidth(), bitmapObject.GetHeight());
                     printf("Finished mmg file creation\n");
 
-                    /// Create a file to store the resulting compressed commands
                     /// Use the resulting mmg commands to generate the compressed 4 byte commands
                     vector<OutCommand> outCmds;
 
@@ -513,53 +520,22 @@ LRESULT CALLBACK WindowProcedure (HWND hwnd, UINT message, WPARAM wParam, LPARAM
                     // Add terminating command
                     outCmds.push_back({0, 0, 0, 0});
 
-                    // Convert the vector to a buffer
-                    int l = outCmds.size();
-                    __int8* outBuff = new __int8[l*4];
-                    for(int i = 0; i < l*4; i += 4)
+                    /// Create a file to store the resulting compressed commands
+                    // Replace extension to save the binary file
+                    res = PathRenameExtensionW(szOutPath, L".bin");
+                    if(!res)
                     {
-                        outBuff[i] = outCmds[i/4].x;
-                        outBuff[i+1] = outCmds[i/4].y;
-                        outBuff[i+2] = outCmds[i/4].z;
-                        outBuff[i+3] = outCmds[i/4].acc;
+                        MessageBox(hwnd, "Error in saving file, file not saved", "Error", MB_OK | MB_ICONERROR);
+                        return 0;
                     }
 
-                    HANDLE hfile_cmd = CreateFileW(L"./out.hex", GENERIC_WRITE, FILE_SHARE_READ, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
-                    if(hfile_cmd != INVALID_HANDLE_VALUE)
-                    {
-                        DWORD writtenBytes;
-                        if(WriteFile(hfile_cmd, outBuff, l*4, &writtenBytes, NULL))
-                        {
-                            printf("Successfully written the output file out.hex with total amount of %d bytes written\n", writtenBytes);
-                        }
-                        else
-                        {
-                            printf("ERROR ## Failed to write the output file out.hex with total amount of %d bytes written\n", writtenBytes);
-                        }
-                        CloseHandle(hfile_cmd);
-                        int r = GetFullPathNameW(L"out.mmg", MAX_PATH, szCmdsPath, NULL);
-                        if(r == 0)
-                        {
-                            //StrCpyW(szCmdsPath, L"");
-                            MessageBox(NULL, "Could not get path the the output commands file", "Error", MB_OK | MB_ICONERROR);
-                        }
-                        else if(r >= MAX_PATH)
-                        {
-                            //StrCpyW(szCmdsPath, L"");
-                            MessageBox(NULL, "Path to the generated command file is too long", "Error", MB_OK | MB_ICONERROR);
-                        }
-                    }
-                    else
-                    {
-                        printf("ERROR ## Failed to create the output hex file\n");
-                    }
-                    ///
+                    App_SaveCMDs(szOutPath, outCmds, hwnd);
                 }
                 else
                 {
                     MessageBox(hwnd, "Please open a Gerber copper layer file first", "Error", MB_OK | MB_ICONERROR);
                 }
-
+                MessageBox(hwnd, "Successfully created files out.bin, out.mmg, and out.bmp", "Success", MB_OK | MB_ICONINFORMATION);
                 break;
             }
             SendMessage(layerWnd, WMU_UPDATE, 0, 0);

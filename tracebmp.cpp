@@ -101,12 +101,17 @@ vector<Command> TracePixelMatrix(PixelMatrix* matrix, int zTop, int zBottom)
     while(RadialScan(matrix, curX, curY, &tempX, &tempY))
     {
         curX = tempX; curY = tempY;
-        int result = TraceStart(matrix, curX, curY, &tempX, &tempY);
 
+        /// Currently, tracing start is disabled
+        int result = 0;
+        //int result = TraceStart(matrix, curX, curY, &tempX, &tempY);
+
+        #if defined(DEBUG)
         if(result != 0)
         {
             cout << "Error in TraceStart function with code: " << result << endl;
         }
+        #endif
 
         // If the current pixel is connected to adjacent checked pixels, start at a checked pixel to make sure the isolation is correct
         // In other words, call the clearance function
@@ -140,7 +145,9 @@ int TraceStart(PixelMatrix* matrix, int x, int y, int* xx, int* yy)
 {
     // TO DO: fix bad practices in this function
 
+    #if defined(DEBUG)
     cout << "Tracing the start of a path......" << endl;
+    #endif
 
     Direction curDir;
     Direction prevDir;
@@ -201,16 +208,20 @@ int TraceStart(PixelMatrix* matrix, int x, int y, int* xx, int* yy)
             (*xx) = startX;
             (*yy) = startY;
 
+            #if defined(DEBUG)
             cout << "Finished tracing the start" << endl;
 
             cout << "*xx = "<< (*xx) << endl;
             cout << "*yy = "<< (*yy) << endl;
+            #endif
 
             return 0;
         }
 
         // In case there are no endpoints and this is not the start point
+        #if defined(DEBUG)
         cout << "### Error in tracing a path start: no end points are detected." << endl;
+        #endif
         return 1;
     }
 
@@ -227,7 +238,9 @@ int TraceStart(PixelMatrix* matrix, int x, int y, int* xx, int* yy)
     int minSqDis = disX*disX + disY*disY;
     *xx = endX[0]; *yy = endY[0];
 
+    #if defined(DEBUG)
     cout << "List of end points:" << endl;
+    #endif
 
     for(int i = 0; i < endX.size(); i++)
     {
@@ -242,15 +255,19 @@ int TraceStart(PixelMatrix* matrix, int x, int y, int* xx, int* yy)
             *xx = endX[i]; *yy = endY[i];
         }
 
+        #if defined(DEBUG)
         cout << "endX[" << i << "] = "<< endX[i] << endl;
         cout << "endY[" << i << "] = "<< endY[i] << endl;
         cout << "sqDis[" << i << "] = "<< tempSqDis << endl;
+        #endif
     }
 
+    #if defined(DEBUG)
     cout << "Finished tracing the start" << endl;
 
     cout << "*xx = "<< (*xx) << endl;
     cout << "*yy = "<< (*yy) << endl;
+    #endif
 
     return 0;
 }
@@ -263,7 +280,9 @@ int RadialScan(PixelMatrix* matrix, int x, int y, int* xx, int* yy)
     int pdy = abs(matrix->GetHeight() - y);
     int ndy = abs(y);
 
+    #if defined(DEBUG)
     cout << "Starting a radial scan" << endl;
+    #endif
 
     int maxR = pdx;
 
@@ -413,6 +432,7 @@ vector<Command> TracePixel(PixelMatrix* matrix, int x, int y, int zTop, int zBot
 
     vector<Command> commands;
 
+    TriState curState = matrix->GetPixelState(x, y);
     while(1)
     {
         // Get first direction
@@ -422,7 +442,6 @@ vector<Command> TracePixel(PixelMatrix* matrix, int x, int y, int zTop, int zBot
             break;
 
         // Loop until a change of direction or the end of the line
-        TriState curState = matrix->GetPixelState(x, y);
         TriState nextState = matrix->GetPixelState(x+curDir.x, y+curDir.y);
         while(nextState == ISOLATE || (nextState == CHECKED && curState == ISOLATE))
         {
@@ -534,7 +553,10 @@ vector<Command> SimplifyCommandsXY(vector<Command> commands)
             if(commands[i+1].GetType() != type || commands[i+2].GetType() != type || commands[i+3].GetType() != type)
             {
                 condType = false;
+
+                #if defined(DEBUG)
                 cout << "Condition failed: Same type" << endl;
+                #endif
             }
 
             // Check Commands i to i+3 have the same z
@@ -542,7 +564,10 @@ vector<Command> SimplifyCommandsXY(vector<Command> commands)
             if(commands[i].GetZ() != commands[i+1].GetZ() || commands[i].GetZ() != commands[i+2].GetZ() || commands[i].GetZ() != commands[i+3].GetZ())
             {
                 condZ = false;
+
+                #if defined(DEBUG)
                 cout << "Condition failed: Same Z" << endl;
+                #endif
             }
 
 
@@ -554,7 +579,10 @@ vector<Command> SimplifyCommandsXY(vector<Command> commands)
             if((deltaDirX && deltaDirY) || (!deltaDirX && !deltaDirY))
             {
                 condSingleDirection = false;
+
+                #if defined(DEBUG)
                 cout << "Condition failed: Single direction" << endl;
+                #endif
             }
 
             // Check L2 having only a 1 pixel long movement
@@ -565,7 +593,10 @@ vector<Command> SimplifyCommandsXY(vector<Command> commands)
             if(deltaX > 1 || deltaY > 1 || deltaX < -1 || deltaY < -1)
             {
                 condOnePixel = false;
+
+                #if defined(DEBUG)
                 cout << "Condition failed: One pixel" << endl;
+                #endif
             }
 
             if(simplifying)
@@ -586,7 +617,10 @@ vector<Command> SimplifyCommandsXY(vector<Command> commands)
             if(dir3.x != dir1.x || dir3.y != dir1.y)
             {
                 condSameDir = false;
+
+                #if defined(DEBUG)
                 cout << "Condition failed: Same direction" << endl;
+                #endif
             }
 
             // Check L1 and L3 having the same length
@@ -618,7 +652,11 @@ vector<Command> SimplifyCommandsXY(vector<Command> commands)
             else
             {
                 simpCommands.push_back(commands[i+1]);
+
+                #if defined(DEBUG)
                 cout << "Added a command to the simplified list" << endl;
+                #endif
+
                 i++;
                 simplifying = false;
                 break;

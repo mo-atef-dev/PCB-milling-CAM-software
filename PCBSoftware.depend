@@ -47,7 +47,7 @@
 	"Header.h"
 	<stdio.h>
 
-1656966860 source:c:\users\mohamed atef\documents\ee school\graduation project\windows software\pcbsoftware_v2\resources.rc
+1658004168 source:c:\users\mohamed atef\documents\ee school\graduation project\windows software\pcbsoftware_v2\resources.rc
 	<windows.h>
 	<commctrl.h>
 	<richedit.h>
@@ -64,11 +64,12 @@
 	<math.h>
 	<stdio.h>
 
-1657352734 source:c:\users\mohamed atef\documents\ee school\graduation project\windows software\pcbsoftware_v2\main.cpp
+1658004253 source:c:\users\mohamed atef\documents\ee school\graduation project\windows software\pcbsoftware_v2\main.cpp
 	<tchar.h>
 	<windows.h>
 	<windowsx.h>
 	<Commdlg.h>
+	<shlwapi.h>
 	"cmds.h"
 	"tracebmp.h"
 	"tracecheck.h"
@@ -77,6 +78,7 @@
 	"cmncontrols.h"
 	"maxCupper_loading.h"
 	"usb.h"
+	"mmgparse.h"
 	<stdio.h>
 
 1638998747 source:d:\books\faculty\4th\project\v1\v2\pcbsoftware_v2\main.cpp
@@ -111,14 +113,14 @@
 1652223652 source:c:\users\mohamed atef\documents\ee school\graduation project\windows software\pcbsoftware_v2\cmncontrols.cpp
 	"cmncontrols.h"
 
-1657351818 source:c:\users\mohamed atef\documents\ee school\graduation project\windows software\pcbsoftware_v2\tracebmp.cpp
+1657919114 source:c:\users\mohamed atef\documents\ee school\graduation project\windows software\pcbsoftware_v2\tracebmp.cpp
 	"tracebmp.h"
 
-1657350856 c:\users\mohamed atef\documents\ee school\graduation project\windows software\pcbsoftware_v2\tracebmp.h
+1657915928 c:\users\mohamed atef\documents\ee school\graduation project\windows software\pcbsoftware_v2\tracebmp.h
 	<string>
 	<vector>
-	<iostream>
 	<math.h>
+	<iostream>
 	"bitmap_image.hpp"
 
 946674000 c:\users\mohamed atef\documents\ee school\graduation project\windows software\pcbsoftware_v2\bitmap_image.hpp
@@ -133,7 +135,7 @@
 	<string>
 	<vector>
 
-1656928227 c:\users\mohamed atef\documents\ee school\graduation project\windows software\pcbsoftware_v2\maxcupper_loading.h
+1657917509 c:\users\mohamed atef\documents\ee school\graduation project\windows software\pcbsoftware_v2\maxcupper_loading.h
 	<wincodec.h>
 	<objbase.h>
 	<combaseapi.h>
@@ -145,6 +147,7 @@
 	<math.h>
 	<stdio.h>
 	"BMP.h"
+	"cmds.h"
 
 1650313914 c:\users\mohamed atef\documents\ee school\graduation project\windows software\pcbsoftware_v2\bmp.h
 	<fstream>
@@ -152,19 +155,20 @@
 	<stdexcept>
 	<iostream>
 
-1651402553 source:c:\users\mohamed atef\documents\ee school\graduation project\windows software\pcbsoftware_v2\tracecheck.cpp
+1657916232 source:c:\users\mohamed atef\documents\ee school\graduation project\windows software\pcbsoftware_v2\tracecheck.cpp
 	"tracecheck.h"
 
 1646434105 c:\users\mohamed atef\documents\ee school\graduation project\windows software\pcbsoftware_v2\tracecheck.h
 	"tracebmp.h"
 	<cstdlib>
 
-1656966860 c:\users\mohamed atef\documents\ee school\graduation project\windows software\pcbsoftware_v2\resource.h
+1658004168 c:\users\mohamed atef\documents\ee school\graduation project\windows software\pcbsoftware_v2\resource.h
 
-1657352350 source:c:\users\mohamed atef\documents\ee school\graduation project\windows software\pcbsoftware_v2\app.cpp
+1658004343 source:c:\users\mohamed atef\documents\ee school\graduation project\windows software\pcbsoftware_v2\app.cpp
 	"app.h"
+	<stdio.h>
 
-1656919451 c:\users\mohamed atef\documents\ee school\graduation project\windows software\pcbsoftware_v2\app.h
+1658004122 c:\users\mohamed atef\documents\ee school\graduation project\windows software\pcbsoftware_v2\app.h
 	<windows.h>
 	<windowsx.h>
 	<stdlib.h>
@@ -179,13 +183,18 @@
 	"cmds.h"
 	"maxCupper_loading.h"
 
-1656964523 source:c:\users\mohamed atef\documents\ee school\graduation project\windows software\pcbsoftware_v2\cmds.cpp
-	"cmds.h"
-
-1656963792 c:\users\mohamed atef\documents\ee school\graduation project\windows software\pcbsoftware_v2\cmds.h
-	<vector>
-	<cmath>
+1657958484 source:c:\users\mohamed atef\documents\ee school\graduation project\windows software\pcbsoftware_v2\cmds.cpp
 	<iostream>
+	<fstream>
+	<cmath>
+	"cmds.h"
+	<string>
+	<bitset>
+	<string.h>
+	<vector>
+
+1657958485 c:\users\mohamed atef\documents\ee school\graduation project\windows software\pcbsoftware_v2\cmds.h
+	<vector>
 
 1657048724 source:c:\users\mohamed atef\documents\ee school\graduation project\windows software\pcbsoftware_v2\usb.cpp
 	"usb.h"
@@ -194,7 +203,19 @@
 	<libusb-1.0/libusb.h>
 	<stdio.h>
 
-1656947523 source:c:\users\mohamed atef\documents\ee school\graduation project\windows software\pcbsoftware_v2\maxcupper_loading.cpp
+1657917509 source:c:\users\mohamed atef\documents\ee school\graduation project\windows software\pcbsoftware_v2\maxcupper_loading.cpp
 	"maxCupper_loading.h"
 	<stdio.h>
+
+1657986704 source:c:\users\mohamed atef\documents\ee school\graduation project\windows software\pcbsoftware_v2\mmgparse.cpp
+	<iostream>
+	<stdio.h>
+	<string>
+	<string.h>
+	<vector>
+	"mmgparse.h"
+
+1657986706 c:\users\mohamed atef\documents\ee school\graduation project\windows software\pcbsoftware_v2\mmgparse.h
+	<vector>
+	"cmds.h"
 

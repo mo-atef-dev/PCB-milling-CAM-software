@@ -22,7 +22,10 @@ CheckResult DetailedCheck(vector<Command> commands, bitmap_image img)
     // This loop creates the new image based on the commands
     for(vector<Command>::iterator i = commands.begin(); i != commands.end(); ++i)
     {
+        #if defined(DEBUG)
         cout << "Started command: " << CommandString((*i)) << endl;
+        #endif
+
         if((*i).GetType() == MOVE)
         {
             x = (*i).GetX();
@@ -37,11 +40,13 @@ CheckResult DetailedCheck(vector<Command> commands, bitmap_image img)
             int xi = x;
             int yi = y;
 
+            #if defined(DEBUG)
             ///----------------DEBUG---------------------
 
             cout << "dx = " << dx << ", dy = " << dy << endl;
 
             ///------------------------------------------
+            #endif
 
             while(x != (*i).GetX() || y != (*i).GetY() || z != (*i).GetZ())
             {
@@ -52,7 +57,17 @@ CheckResult DetailedCheck(vector<Command> commands, bitmap_image img)
                     z += GET_DIR((*i).GetZ(), z);
                     if(z < 0)
                     {
-                        r.img.set_pixel(x, y, (r.nLineTo%2)*255, 0, 0);
+                        rgb_t white = {255, 255, 255};
+                        if(r.img.get_pixel(x, y) != white)
+                        {
+                            r.img.set_pixel(x, y, 0, 255, 0);
+
+                            #if defined(DEBUG)
+                            cout << "Interleaved pixel\n";
+                            #endif
+                        }
+                        else
+                            r.img.set_pixel(x, y, (r.nLineTo%2)*255, 0, 0);
                     }
 
                     continue;
@@ -73,7 +88,16 @@ CheckResult DetailedCheck(vector<Command> commands, bitmap_image img)
                 z += GET_DIR((*i).GetZ(), z);
                 if(z < 0)
                 {
-                    r.img.set_pixel(x, y, (r.nLineTo%2)*255, 0, 0);
+                    rgb_t white = {255, 255, 255};
+                    if(r.img.get_pixel(x, y) != white)
+                    {
+                        r.img.set_pixel(x, y, 0, 255, 0);
+                        #if defined(DEBUG)
+                        cout << "Interleaved pixel\n";
+                        #endif
+                    }
+                    else
+                        r.img.set_pixel(x, y, (r.nLineTo%2)*255, 0, 0);
                 }
             }
 

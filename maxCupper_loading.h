@@ -21,6 +21,9 @@
 #include"BMP.h"
 
 
+#include"cmds.h"
+
+
 extern ID2D1Factory* pFactory_ /*= NULL*/;
 extern ID2D1RenderTarget* pWicRenderTarget_ /*= NULL*/;
 extern IWICImagingFactory* wicFactory_ /*= NULL*/;
@@ -28,10 +31,25 @@ extern ID2D1SolidColorBrush* pWicBrush /*=NULL*/;
 extern IWICBitmap* pBitmap_ /*= NULL*/;    //maxcupper
 extern IWICBitmap* pBitmap_2 /*= NULL*/;   //gerber
 extern IWICBitmap* pBitmap_3 /*= NULL*/;   //maxcupper and gerber
+extern IWICBitmap* pBitmap_4 /*= NULL*/;   //mmg
 
 extern ID2D1Bitmap* D2DpBitmap /*= NULL*/;
 extern ID2D1HwndRenderTarget* pRT /*= NULL*/;
 extern ID2D1SolidColorBrush* pWindowBrush /*=NULL*/;
+
+//width and height to scale_transition
+extern UINT w;
+extern UINT h;
+extern UINT w_MMG;
+extern UINT h_MMG;
+extern float fraction_to_reduce /* = 0.05*/;
+
+
+/// <summary>
+/// Initialize render target and brush
+/// </summary>
+/// <param name="handeller_to_window">: Handler to the originale window that will paint on</param>
+void initializeDrawing(HWND handeller_to_window);
 
 /// <summary>
 /// Class that represent a bitmap and handle with it to change the pixel individually
@@ -251,7 +269,8 @@ public:
     }
 };
 
-//object of tracing algorithm
+
+//object for tracing algorithm
 extern MyBitmap bitmapObject /*= MyBitmap()*/;
 
 
@@ -304,6 +323,15 @@ void same_color(BYTE* pv, UINT cb_Stride, UINT puiWidth, UINT puiHeight, UINT co
 /// <param name="color_2">The second color to use in the max cupper</param>
 /// <param name="cupper">The thired color to use in the max cupper which represent the finle color of the cupper</param>
 void max_cupper(BYTE* pv, UINT cb_Stride, UINT puiWidth, UINT puiHeight, UINT color_1, UINT color_2, UINT cupper);
+
+/// <summary>
+/// Inhance the max cupper algorithm to the bitmap which represent a electric circuit
+/// </summary>
+/// <param name="pv">: pointr to the array that represent a bitmap</param>
+/// <param name="cb_Stride">: The width of the bitmap(the row length)</param>
+/// <param name="puiWidth">: The width of the bitmap</param>
+/// <param name="puiHeight">: The height of the bitmap</param>
+void inhanceMaxcupper(BYTE* pv, UINT cb_Stride, UINT puiWidth, UINT puiHeight);
 
 /// <summary>
 /// Make the same color function and the max cupper function
@@ -384,10 +412,12 @@ public:
 
 };
 
+
+int testFormatDrills(char* str);
+
 /// <summary>
 /// Convert the string to float starting from the index of the least segneficant digit and back to the X and Y symbols
 /// </summary>
-/// <param name="size"></param>
 /// <param name="str">: The string that have the x and y points (XxxxxYxxxx)</param>
 /// <param name="index">: Index of the last digit in the string</param>
 /// <param name="coord_digits_x">: The number of the fraction digits of the X point</param>
@@ -397,9 +427,7 @@ public:
 /// <param name="scale">: The scale which represent the number of pixels for mm</param>
 /// <param name="Shift_X">: The x value for shifting to draw the circut in the first quarter of the coordinates</param>
 /// <param name="Shift_Y">: The y value for shifting to draw the circut in the first quarter of the coordinates</param>
-/// <param name="yCoordinatWindow"></param>
 void string_to_float(
-    D2D1_SIZE_U size,
     char* str,
     int index,
     int coord_digits_x,
@@ -408,15 +436,13 @@ void string_to_float(
     float& y_cord,//output
     float scale =10,
     float Shift_X = 0,
-    float Shift_Y = 0,
-    bool yCoordinatWindow = true
+    float Shift_Y = 0
 );
 
 
 /// <summary>
 /// Convert the string to float starting for the drill file from the index of the least segneficant digit and back to the X and Y symbols
 /// </summary>
-/// <param name="size"></param>
 /// <param name="str">: The string that have the x and y points (XxxxxYxxxx)</param>
 /// <param name="index">: Index of the last digit in the string</param>
 /// <param name="coord_digits_x">: The number of the fraction digits of the X point</param>
@@ -427,9 +453,7 @@ void string_to_float(
 /// <param name="scale">: The scale which represent the number of pixels for mm</param>
 /// <param name="Shift_X">: The x value for shifting to draw the circut in the first quarter of the coordinates</param>
 /// <param name="Shift_Y">: The y value for shifting to draw the circut in the first quarter of the coordinates</param>
-/// <param name="yCoordinatWindow"></param>
 void string_to_float_dill(
-    D2D1_SIZE_U size,
     char* str,
     int index,
     int coord_digits_x,
@@ -439,8 +463,7 @@ void string_to_float_dill(
     float& y_cord,//output
     float scale = 10,
     float Shift_X = 0,
-    float Shift_Y = 0,
-    bool yCoordinatWindow = true
+    float Shift_Y = 0
 );
 
 /// <summary>
@@ -531,7 +554,14 @@ void draw_polygon(
     aperture* current_shape
 );
 
-
+/// <summary>
+/// Draw a WicBitmap on the window
+/// </summary>
+/// <param name="handeller_to_window">: The handler to the window which the bitmap will draw on</param>
+/// <param name="pFactory">: The factory of drawing</param>
+/// <param name="pWicBitmap_">: WicBitmap which must be one of:(pBitmap_, pBitmap_2, pBitmap_3, pBitmap_4)</param>
+/// <param name="wicFactory">: The WicFactory of drawing</param>
+/// <returns></returns>
 ID2D1Bitmap* DrawBitmapOnWindow(
     HWND handeller_to_window,
     ID2D1Factory* pFactory,
@@ -539,50 +569,80 @@ ID2D1Bitmap* DrawBitmapOnWindow(
     IWICImagingFactory* wicFactory
 );
 
-BYTE* lockMeoryBitmap(IWICBitmap* pWicBitmap,IWICBitmapLock* pLock, UINT puiWidth, UINT puiHeight, UINT& cb_Stride, UINT& cb_BufferSize );
+/// <summary>
+/// Get a pointer of an array which represent the bitmap to manually modify it
+/// </summary>
+/// <param name="pWicBitmap">: The WicBitmap which neeed to get its pointer array</param>
+/// <param name="pLock">: Pointer to IWICBitmapLock to lock the Bitmap</param>
+/// <param name="puiWidth">: Width of the WicBitmap</param>
+/// <param name="puiHeight">: Height of the WicBitmap</param>
+/// <param name="cb_Stride">: The stride of the bitmap(the width)</param>
+/// <param name="cb_BufferSize">: The size of the bitmap</param>
+/// <returns>: pointer to an array which represent a WicBitmap</returns>
+BYTE* lockMeoryBitmap(IWICBitmap* pWicBitmap, UINT puiWidth, UINT puiHeight, UINT& cb_Stride, UINT& cb_BufferSize );
 
+
+/// <summary>
+/// Get the width and the height of the gerber file(the width and the height of circuit)
+/// </summary>
+/// <param name="handeller_to_window">: The handeller to the window</param>
+/// <param name="str">: String represent a gerber file</param>
+/// <param name="size">: size of the window</param>
+/// <param name="coord_digits_x">: number of fraction part of x of the number in the gerber file</param>
+/// <param name="coord_digits_y">: number of fraction part of y of the number in the gerber file</param>
+/// <param name="scale">: The inverse of the mm per pixel</param>
+/// <param name="puiWidth">: Retern by referance(The output):The width of the gerber file(the width of the circuit)</param>
+/// <param name="puiHeight">: Retern by referance(The output): The height of the gerber file(the width of the circuit)</param>
+/// <param name="Shift_X">: Retern by referance(The output): The value of x axis that shift all the gerber values to the first quarter</param>
+/// <param name="Shift_Y">: Retern by referance(The output): The value of y axis that shift all the gerber values to the first quarter</param>
 void GetWidthHeight(
     HWND handeller_to_window,
     char* str,
-    D2D1_SIZE_U size,
     int coord_digits_x,
     int coord_digits_y,
     float scale,
-    UINT& puiWidth, //output
-    UINT& puiHeight, //output
+    UINT& puiWidth,
+    UINT& puiHeight,
     float& Shift_X,
     float& Shift_Y
 );
 
 
-//DrawDrills
+
 void DrawDrills_gerber(
     BYTE* pv,
     UINT cb_stride,
     char* str,
-    D2D1_SIZE_U size,
     int coord_digits_x,
     int coord_digits_y,
     float Shift_X,
     float Shift_Y,
-    float scale,
-    ID2D1RenderTarget* pWicRenderTarget,
-    ID2D1SolidColorBrush* pWicBrush
+    float scale
 );
 
-//DrawDrills
+/// <summary>
+/// Draw drills on the maxcupper as one pixel for drill
+/// </summary>
+/// <param name="pv">: Pointer to the array that represent a circuit</param>
+/// <param name="cb_stride">: The stride of the bitmap that represent a circuit</param>
+/// <param name="str">: String represent a drills Xln file </param>
+/// <param name="size"></param>
+/// <param name="coord_digits_x">: number of fraction part of x of the number in the gerber file</param>
+/// <param name="coord_digits_y">: number of fraction part of y of the number in the gerber file</param>
+/// <param name="Shift_X">: Retern by referance(The output): The value of x axis that shift all the gerber values to the first quarter</param>
+/// <param name="Shift_Y">: Retern by referance(The output): The value of y axis that shift all the gerber values to the first quarter</param>
+/// <param name="scale">: The inverse of the mm per pixel</param>
+/// <param name="pWicRenderTarget">: The render target that will be used to draw the drills </param>
+/// <param name="pWicBrush">: The brush that will be used to draw drills</param>
 void DrawDrills_xln(
     BYTE* pv,
     UINT cb_stride,
     char* str,
-    D2D1_SIZE_U size,
     int coord_digits_x,
     int coord_digits_y,
     float Shift_X,
     float Shift_Y,
-    float scale,
-    ID2D1RenderTarget* pWicRenderTarget,
-    ID2D1SolidColorBrush* pWicBrush
+    float scale
 );
 
 void scale_translation(
@@ -593,17 +653,20 @@ void scale_translation(
     float offset_y
 );
 
+void Resize(HWND handeller_to_window,ID2D1HwndRenderTarget* pRT, ID2D1Bitmap* D2DpBitmap);
 
-//////////
-void SaveBitmapToFile(BYTE* pBitmapBits,
-    LONG lWidth,
-    LONG lHeight,
-    WORD wBitsPerPixel,
-    const unsigned long& padding_size,
-    LPCTSTR lpszFileName
+
+
+//scale_translation and Resize
+void scaleResize(
+    HWND handeller_to_window,
+    ID2D1HwndRenderTarget* pRT,
+    float scale_factor,
+    float offset_x,
+    float offset_y,
+    ID2D1Bitmap* D2DpBitmap
 );
 
-void SaveBitmapToFileColor(BYTE* pBitmapBits, LONG lWidth, LONG lHeight, WORD wBitsPerPixel, LPCTSTR lpszFileName);
 
 void DrawBorders(
     ID2D1RenderTarget* pWicRenderTarget,
@@ -626,10 +689,21 @@ ID2D1Bitmap* DrawGerberOnBitmab(
     bool xln_grb = true
 );
 
-void Resize(HWND handeller_to_window,ID2D1HwndRenderTarget* pRT, ID2D1Bitmap* D2DpBitmap);
 
 void DrawLineOnWindow(float xStart, float yStart, float xEnd, float yEnd, float red, float green, float blue, float width);
 
 void DrawCirculeOnWindow(float xStart, float yStart, float radius, float red, float green, float blue);
+
+void BeginDrawOnWindow();
+
+void EndDrawOnWindow();
+
+
+
+void DrawMMG(std::vector <CompressedCommand> commands, float scale = 0.1);
+
+
+
+
 
 #endif // MAXCOPPER_H_INCLUDED

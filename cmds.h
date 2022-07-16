@@ -1,28 +1,28 @@
 #ifndef FINALS_H_INCLUDED
 #define FINALS_H_INCLUDED
-
 #include<vector>
-#include<cmath>
-#include<iostream>
-
-struct CompressedCommand
+struct CompressedCommand       // this struct is to hold the input commands
 {
      float x;
      float y;
      float z;
 };
-struct OutCommand
+struct OutCommand      //// this struct is to hold the output commands
 {
-     unsigned __int8 x;
-     unsigned __int8 y;
-     unsigned __int8 z;
-     unsigned __int8 acc;
+  unsigned __int8 x;
+  unsigned __int8 y;
+  unsigned __int8 z;
+  unsigned __int8 acc;
 };
-void SplitLines(int x,int y,int z,unsigned __int8 speed1,unsigned __int8 speed2,unsigned __int8 acc);    /* don't touch this ;D  */
 
 
-std::vector<OutCommand> step_mov(std::vector <CompressedCommand> v, int xstep, int ystep, int zstep);
-//std::vector<OutCommand> step_mov(std::vector <CompressedCommand> v, float xstep, float ystep, float zstep);
+ void SetMaxSpeed(int x); //this function for setting the maximum speed will the machine work at acceleration an deacceleration
+ // it is must the value between (0 --> 7)
+
+
+
+
+std::vector<OutCommand> step_mov(std::vector <CompressedCommand> v,float xstep, float ystep, float zstep);
 
   /*this function that you will use it will take
 vector of struct "CompressedCommand" and return a vector of struct "OutCommand"
