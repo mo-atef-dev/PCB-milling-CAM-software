@@ -66,9 +66,18 @@ Changes:
 - Added latest team mates files
 - Removed GUI buttons
 - Removed unused menu items
-- Added the ability to open an MMG file and a menu item to convert the MMG to commands
+- Added the ability to open an MMG file and a menu item to convert the MMG to commands, using the mmgparse module by Kerolos
 - Output file paths are now strict as following:
  -- For max copper the output is in the same directory as the copper layer
  -- For MMG conversion to commands, the output is in the same directory as the source MMG
  -- For MMG and commands generation from an image, the output is in the same directory as the source image
 - Adjusted the release build settings
+
+-- Version 2022.7.17
+
+Changes:
+- Added latest team mates files
+- Added the ability to draw MMG toolpaths
+- Added the ability to select max speed
+- Removed the ability to determine the machine resolution and is not fixed at 0.1mm per pixel
+- Fixed a bug where the program crashes when the user cancels mmg open file dialog

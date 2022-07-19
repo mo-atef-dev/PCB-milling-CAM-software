@@ -72,6 +72,7 @@ const int drawMargin = 10;
 
 /* Program constants */
 const float mmPerStep = 0.02;
+const float pixTomm = 0.1;
 const int stepPermm = 50;
 
 /* Other variables */
@@ -255,6 +256,20 @@ LRESULT CALLBACK WindowProcedure (HWND hwnd, UINT message, WPARAM wParam, LPARAM
                 disp = 2;
                 DrawBitmapOnWindow(drawWnd,pFactory_, pBitmap_3,wicFactory_);
                 break;
+            case ID_VTPTH:
+                disp = 3;
+                DrawBitmapOnWindow(drawWnd,pFactory_, pBitmap_4,wicFactory_);
+                break;
+            case ID_VFLIP:
+                if(disp == 0)
+                    DrawBitmapOnWindow(drawWnd,pFactory_, pBitmap_2,wicFactory_);
+                else if(disp == 1)
+                    DrawBitmapOnWindow(drawWnd,pFactory_, pBitmap_,wicFactory_);
+                else if(disp == 2)
+                    DrawBitmapOnWindow(drawWnd,pFactory_, pBitmap_3,wicFactory_);
+                else if(disp == 3)
+                    DrawBitmapOnWindow(drawWnd,pFactory_, pBitmap_4,wicFactory_);
+                break;
             case ID_DOWNLOAD:
                 {
                     if(wcslen(szCmdsPath) >= 1)
@@ -329,21 +344,34 @@ LRESULT CALLBACK WindowProcedure (HWND hwnd, UINT message, WPARAM wParam, LPARAM
                 break;
             case ID_CMDS:
                 {
+                    WCHAR filename[MAX_FILENAME];
                     vector<OutCommand> outCmds;
                     vector<CompressedCommand> cmpCmds;
+                    DlgStrct_MaxCopper result;
                     char* tempArr;
+
+                    // Get filename
+                    App_GetSaveFileName(filename, layerWnd, MAX_FILENAME);
 
                     if(mmgString.size() < 2)
                     {
-                        MessageBox(hwnd, "Error in generating commands: MMG commands too short", "Error", MB_OK | MB_ICONERROR);
+                        MessageBox(hwnd, "Error in generating commands: MMG commands not read correctly or are too short", "Error", MB_OK | MB_ICONERROR);
                         return 0;
                     }
+
+                    if(App_GetTraceInputs(result, hwnd) == 0)
+                    {
+                        return 0;
+                    }
+                    MessageBox(hwnd, "Please note that the safe Z distance and Z cutting depth settings are ignored to not modify the sourced (or generated) MMG file", "Success", MB_OK | MB_ICONINFORMATION);
 
                     tempArr = new char[mmgString.length()+1];
                     strcpy(tempArr, mmgString.c_str());
                     cmpCmds = MMG_PARSE(tempArr);
                     delete[] tempArr;
 
+                    // SetMaxSpeed function is necessary before using the step_mov function inside App_MMGtoCMDs
+                    SetMaxSpeed(result.maxSpd);
                     App_MMGtoCMDs(mmgString, outCmds, cmpCmds, mmPerStep);
 
                     // Add terminating command
@@ -358,7 +386,8 @@ LRESULT CALLBACK WindowProcedure (HWND hwnd, UINT message, WPARAM wParam, LPARAM
                         MessageBox(hwnd, "Error in saving file, file not saved", "Error", MB_OK | MB_ICONERROR);
                         return 0;
                     }
-                    res = PathAppendW(szOutPath, L"out.bin");
+                    res = PathAppendW(szOutPath, filename);
+                    res = PathAddExtensionW(szOutPath, L".bin");
                     if(!res)
                     {
                         MessageBox(hwnd, "Error in saving file, file not saved", "Error", MB_OK | MB_ICONERROR);
@@ -366,12 +395,16 @@ LRESULT CALLBACK WindowProcedure (HWND hwnd, UINT message, WPARAM wParam, LPARAM
                     }
                     App_SaveCMDs(szOutPath, outCmds, hwnd);
 
-                    MessageBox(hwnd, "Successfully created file out.bin", "Success", MB_OK | MB_ICONINFORMATION);
+                    MessageBox(hwnd, "Successfully created output file bin", "Success", MB_OK | MB_ICONINFORMATION);
                 }
                 break;
             case ID_MMG:
                 {
+                    WCHAR filename[MAX_FILENAME];
                     DlgStrct_MaxCopper result;
+
+                    // Get filename
+                    App_GetSaveFileName(filename, layerWnd, MAX_FILENAME);
 
                     if(App_GetTraceInputs(result, hwnd) == 0)
                     {
@@ -391,7 +424,8 @@ LRESULT CALLBACK WindowProcedure (HWND hwnd, UINT message, WPARAM wParam, LPARAM
                         MessageBox(hwnd, "Error in saving mmg file, file not saved", "Error", MB_OK | MB_ICONERROR);
                         return 0;
                     }
-                    res = PathAppendW(szOutPath, L"out.mmg");
+                    res = PathAppendW(szOutPath, filename);
+                    res = PathAddExtensionW(szOutPath, L".mmg");
                     if(!res)
                     {
                         MessageBox(hwnd, "Error in saving mmg file, file not saved", "Error", MB_OK | MB_ICONERROR);
@@ -416,6 +450,8 @@ LRESULT CALLBACK WindowProcedure (HWND hwnd, UINT message, WPARAM wParam, LPARAM
                     /// Use the resulting mmg commands to generate the compressed 4 byte commands
                     vector<OutCommand> outCmds;
 
+                    // SetMaxSpeed function is necessary before using the step_mov function inside App_MMGtoCMDs
+                    SetMaxSpeed(result.maxSpd);
                     App_MMGtoCMDs(mmgString, outCmds, traceCmds, mmPerStep, result.pixTomm);
 
                     // Add terminating command
@@ -432,110 +468,118 @@ LRESULT CALLBACK WindowProcedure (HWND hwnd, UINT message, WPARAM wParam, LPARAM
 
                     App_SaveCMDs(szOutPath, outCmds, hwnd);
 
-                    MessageBox(hwnd, "Successfully created files out.bin, out.mmg, and out.bmp", "Success", MB_OK | MB_ICONINFORMATION);
+                    MessageBox(hwnd, "Successfully created output files bin, mmg, and bmp", "Success", MB_OK | MB_ICONINFORMATION);
                 }
                 break;
             case ID_MAXCPR:
-
-                if(!szDrillBuffer)
                 {
-                    if(MessageBox(hwnd, "No drill file is opened, do you want to continue?", "Warning", MB_YESNO | MB_ICONEXCLAMATION) != IDYES)
+                    if(!szDrillBuffer)
                     {
-                        return 0;
-                    }
-                }
-
-                if(!szBorderBuffer)
-                {
-                    MessageBox(hwnd, "Please open a Gerber border layer file first", "Error", MB_OK | MB_ICONERROR);
-                    return 0;
-                }
-
-                if(szGerberBuffer)
-                {
-                    DlgStrct_MaxCopper result;
-
-                    if(App_GetTraceInputs(result, hwnd) == 0)
-                    {
-                        return 0;
-                    }
-
-                    MessageBox(hwnd, "Generation of Max-Copper will start. Press OK to continue", "Info", MB_OK | MB_ICONINFORMATION);
-
-                    // This part should be called in a different thread
-                    DrawGerberOnBitmab(hwnd, szGerberBuffer, szBorderBuffer, szDrillBuffer, result.pixTomm, true);
-                    // end
-
-                    PixelMatrix pm(bitmapObject.GetWidth(), bitmapObject.GetHeight());
-                    for(int i = 0; i < bitmapObject.GetWidth(); i++)
-                    {
-                        for(int j = 0; j < bitmapObject.GetHeight(); j++)
+                        if(MessageBox(hwnd, "No drill file is opened, do you want to continue?", "Warning", MB_YESNO | MB_ICONEXCLAMATION) != IDYES)
                         {
-                            if(bitmapObject.isBlack(i, j))
-                            {
-                                pm.SetPixelState(i, j, ISOLATE);
-                            }
+                            return 0;
                         }
                     }
-                    vector<Command> traceCmds = TracePixelMatrix(&pm, result.zTop, result.zBottom);
-                    traceCmds = SimplifyCommandsXY(traceCmds);
-                    mmgString = CommandsString(traceCmds, result.pixTomm, true);
 
-                    // Set the output path to the directory of the copper layer source
-                    BOOL res;
-                    wcscpy(szOutPath, szGerberPath);
-                    res = PathRemoveFileSpecW(szOutPath);
-                    if(!res)
+                    if(!szBorderBuffer)
                     {
-                        MessageBox(hwnd, "Error in saving mmg file, file not saved", "Error", MB_OK | MB_ICONERROR);
-                        return 0;
-                    }
-                    res = PathAppendW(szOutPath, L"out.mmg");
-                    if(!res)
-                    {
-                        MessageBox(hwnd, "Error in saving mmg file, file not saved", "Error", MB_OK | MB_ICONERROR);
+                        MessageBox(hwnd, "Please open a Gerber border layer file first", "Error", MB_OK | MB_ICONERROR);
                         return 0;
                     }
 
-                    /// Create a file to store the resulting mmg commands
-                    App_SaveMMG(szOutPath, mmgString);
-
-                    // Replace extension to save a bitmap
-                    res = PathRenameExtensionW(szOutPath, L".bmp");
-                    if(!res)
+                    if(szGerberBuffer)
                     {
-                        MessageBox(hwnd, "Error in saving image, file not saved", "Error", MB_OK | MB_ICONERROR);
-                        return 0;
+                        WCHAR filename[MAX_FILENAME];
+                        DlgStrct_MaxCopper result;
+
+                        // Get filename
+                        App_GetSaveFileName(filename, layerWnd, MAX_FILENAME);
+
+                        if(App_GetTraceInputs(result, hwnd) == 0)
+                        {
+                            return 0;
+                        }
+
+                        MessageBox(hwnd, "Generation of Max-Copper will start. Press OK to continue", "Info", MB_OK | MB_ICONINFORMATION);
+
+                        // This part should be called in a different thread
+                        DrawGerberOnBitmab(hwnd, szGerberBuffer, szBorderBuffer, szDrillBuffer, result.pixTomm, true);
+                        // end
+
+                        PixelMatrix pm(bitmapObject.GetWidth(), bitmapObject.GetHeight());
+                        for(int i = 0; i < bitmapObject.GetWidth(); i++)
+                        {
+                            for(int j = 0; j < bitmapObject.GetHeight(); j++)
+                            {
+                                if(bitmapObject.isBlack(i, j))
+                                {
+                                    pm.SetPixelState(i, j, ISOLATE);
+                                }
+                            }
+                        }
+                        vector<Command> traceCmds = TracePixelMatrix(&pm, result.zTop, result.zBottom);
+                        traceCmds = SimplifyCommandsXY(traceCmds);
+                        mmgString = CommandsString(traceCmds, result.pixTomm, true);
+
+                        // Set the output path to the directory of the copper layer source
+                        BOOL res;
+                        wcscpy(szOutPath, szGerberPath);
+                        res = PathRemoveFileSpecW(szOutPath);
+                        if(!res)
+                        {
+                            MessageBox(hwnd, "Error in saving mmg file, file not saved", "Error", MB_OK | MB_ICONERROR);
+                            return 0;
+                        }
+                        res = PathAppendW(szOutPath, filename);
+                        res = PathAddExtensionW(szOutPath, L".mmg");
+                        if(!res)
+                        {
+                            MessageBox(hwnd, "Error in saving mmg file, file not saved", "Error", MB_OK | MB_ICONERROR);
+                            return 0;
+                        }
+
+                        /// Create a file to store the resulting mmg commands
+                        App_SaveMMG(szOutPath, mmgString);
+
+                        // Replace extension to save a bitmap
+                        res = PathRenameExtensionW(szOutPath, L".bmp");
+                        if(!res)
+                        {
+                            MessageBox(hwnd, "Error in saving image, file not saved", "Error", MB_OK | MB_ICONERROR);
+                            return 0;
+                        }
+
+                        /// Draw the output image
+                        App_SaveImageFromPixCmds(szOutPath, traceCmds, bitmapObject.GetWidth(), bitmapObject.GetHeight());
+                        printf("Finished mmg file creation\n");
+
+                        /// Use the resulting mmg commands to generate the compressed 4 byte commands
+                        vector<OutCommand> outCmds;
+
+                        // SetMaxSpeed function is necessary before using the step_mov function inside App_MMGtoCMDs
+                        SetMaxSpeed(result.maxSpd);
+                        App_MMGtoCMDs(mmgString, outCmds, traceCmds, mmPerStep, result.pixTomm);
+
+                        // Add terminating command
+                        outCmds.push_back({0, 0, 0, 0});
+
+                        /// Create a file to store the resulting compressed commands
+                        // Replace extension to save the binary file
+                        res = PathRenameExtensionW(szOutPath, L".bin");
+                        if(!res)
+                        {
+                            MessageBox(hwnd, "Error in saving file, file not saved", "Error", MB_OK | MB_ICONERROR);
+                            return 0;
+                        }
+
+                        App_SaveCMDs(szOutPath, outCmds, hwnd);
                     }
-
-                    /// Draw the output image
-                    App_SaveImageFromPixCmds(szOutPath, traceCmds, bitmapObject.GetWidth(), bitmapObject.GetHeight());
-                    printf("Finished mmg file creation\n");
-
-                    /// Use the resulting mmg commands to generate the compressed 4 byte commands
-                    vector<OutCommand> outCmds;
-
-                    App_MMGtoCMDs(mmgString, outCmds, traceCmds, mmPerStep, result.pixTomm);
-
-                    // Add terminating command
-                    outCmds.push_back({0, 0, 0, 0});
-
-                    /// Create a file to store the resulting compressed commands
-                    // Replace extension to save the binary file
-                    res = PathRenameExtensionW(szOutPath, L".bin");
-                    if(!res)
+                    else
                     {
-                        MessageBox(hwnd, "Error in saving file, file not saved", "Error", MB_OK | MB_ICONERROR);
-                        return 0;
+                        MessageBox(hwnd, "Please open a Gerber copper layer file first", "Error", MB_OK | MB_ICONERROR);
                     }
-
-                    App_SaveCMDs(szOutPath, outCmds, hwnd);
+                    MessageBox(hwnd, "Successfully created output files bin, mmg, and bmp", "Success", MB_OK | MB_ICONINFORMATION);
                 }
-                else
-                {
-                    MessageBox(hwnd, "Please open a Gerber copper layer file first", "Error", MB_OK | MB_ICONERROR);
-                }
-                MessageBox(hwnd, "Successfully created files out.bin, out.mmg, and out.bmp", "Success", MB_OK | MB_ICONINFORMATION);
                 break;
             }
             SendMessage(layerWnd, WMU_UPDATE, 0, 0);

@@ -38,21 +38,23 @@ void data(char line[],float*xx,float*yy,float*zz)
 
 
 }
-vector<CompressedCommand> MMG_PARSE(char* str)
+vector<CompressedCommand> MMG_PARSE(const char* str)
 {
+
     float x, y, z;
-    //char line[100];
+    char line[100];
     vector<CompressedCommand>d;
-    char *line;
-    char *r=str;
-    while ((line=strtok_r(str,"\n",&str)))
+    int i=0,k=0;
+    while (str[i]!=NULL)
     {
 
+     line[k]=str[i];
+
+     if (str[i]=='\n')
+        {
 
         if ( line[0]=='G' && (line[2]=='0'||line[2]=='1'))
         {
-
-
             data(line,&x,&y,&z);
             CompressedCommand c;
             c.x=x;
@@ -60,6 +62,11 @@ vector<CompressedCommand> MMG_PARSE(char* str)
             c.z=z;
             d.push_back(c);
         }
+        k=0;
+    }
+    else k++;
+    i++;
     }
     return d;
 }
+

@@ -15,6 +15,7 @@
 
 #include "cmds.h"
 #include "maxCupper_loading.h"
+#include "mmgparse.h"
 
 using namespace std;
 
@@ -24,10 +25,12 @@ using namespace std;
 
 /// This section is for user defined Windows messages
 #define WMU_UPDATE WM_USER+100
+#define WMU_GETOUTNAME WM_USER+101
 
 /// Software constants
 #define ZOOMIN_FAC 1.1
 #define ZOOMOUT_FAC 0.9
+#define MAX_FILENAME 20
 
 /// Global variables for components
 extern CMNStatusBar status_bar;
@@ -55,6 +58,8 @@ extern const int layersWidth;
 extern const int layersPadding;
 extern const int layersItemsSpacing;
 
+extern const float pixTomm;
+
 extern char disp;
 
 /// Proc structures
@@ -63,6 +68,7 @@ struct DlgStrct_MaxCopper
 {
     bool valid;
     float pixTomm;
+    char maxSpd;
     int zTop;
     int zBottom;
 };
@@ -83,6 +89,7 @@ int App_OpenCommands(HWND hwnd);
 int App_OpenFile(HWND hwnd, WCHAR* szFilePath, CHAR* &FileBuffer, BOOL LoadFile, const LPCWSTR lpstrFilter, DWORD nFilterIndex);
 
 int App_GetTraceInputs(DlgStrct_MaxCopper& result, HWND hwndParent);
+int App_GetSaveFileName(LPWSTR name, HWND hwndEditParent, DWORD buffSize);
 int App_BitmaptoMMG(bitmap_image* pTraceImage, std::string& mmg, const DlgStrct_MaxCopper& result, std::vector<Command>& traceCmds, bool simplify = true);
 int App_SaveMMG(const LPWSTR swzPath, const std::string& mmg);
 int App_SaveImageFromPixCmds(const LPWSTR swzPath, const std::vector<Command>& pixCmds, unsigned int width, unsigned int height);

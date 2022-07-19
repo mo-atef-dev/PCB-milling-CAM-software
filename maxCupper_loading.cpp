@@ -5,9 +5,15 @@ ID2D1RenderTarget* pWicRenderTarget_ = NULL;
 IWICImagingFactory* wicFactory_ = NULL;
 ID2D1SolidColorBrush* pWicBrush =NULL;
 IWICBitmap* pBitmap_ = NULL;    //maxcupper
+IWICBitmap* pBitmap_flip = NULL;    //maxcupper
 IWICBitmap* pBitmap_2 = NULL;   //gerber
+IWICBitmap* pBitmap_2_flip = NULL;   //gerber
 IWICBitmap* pBitmap_3 = NULL;   //maxcupper and gerber
+IWICBitmap* pBitmap_3_flip = NULL;   //maxcupper and gerber
 IWICBitmap* pBitmap_4 = NULL;   //mmg
+IWICBitmap* pBitmap_4_flip = NULL;   //mmg
+
+IWICBitmap* pBitmap_main = NULL;   //all
 
 ID2D1Bitmap* D2DpBitmap = NULL;
 ID2D1HwndRenderTarget* pRT = NULL;
@@ -21,7 +27,7 @@ UINT h=0;
 UINT w_MMG =0;
 UINT h_MMG =0;
 bool MMG_or_Maxcupper = true;  //true for MMG , false for maxcupper
-
+bool flip_or_not =true;
 
 //set pixel from array of pixel
 void set_pixel(BYTE* pv, UINT cb_Stride, UINT x0, UINT y0, UINT B, UINT G, UINT R, UINT A) {
@@ -988,7 +994,7 @@ void string_to_float_dill(
         }
         index = index_end_Line;
     }
-    else if (LZ_TZ_dec == 3)
+    else if (LZ_TZ_dec == 1)
     {
         int i = 0;
         float num = 0;
@@ -1132,14 +1138,17 @@ int testFormatDrills(char* str)
             {
                 if(str[i] == 'Y' && str[i+1] == '0')
                 {
+                    std::cout<<"type: LZ"<<std::endl;
                     return 1;//LZ
                 }
                 else if(str[i] == 'Y' && str[i+1] == '-' && str[i+2] == '0')
                 {
+                    std::cout<<"type: LZ"<<std::endl;
                     return 1;//LZ
                 }
                 else if(str[i] == '.')
                 {
+                    std::cout<<"type: decimal point"<<std::endl;
                     return 0;//decimal point
                 }
                 i++;
@@ -1147,6 +1156,7 @@ int testFormatDrills(char* str)
         }
         else if(str[i]=='M' && str[i+1] == '3' && str[i] == '0')
         {
+            std::cout<<"type: TZ"<<std::endl;
             return 2;//TZ
         }
         else
@@ -1356,10 +1366,13 @@ ID2D1Bitmap* DrawBitmapOnWindow(
     HWND handeller_to_window,
     ID2D1Factory* pFactory,
     IWICBitmap* pWicBitmap_,
-    IWICImagingFactory* wicFactory
+    IWICImagingFactory* wicFactory,
+    bool flip
 )
 {
     //ID2D1HwndRenderTarget* pRT = NULL;
+    if(pWicBitmap_== NULL)
+        return NULL;
 
     RECT rc;
     GetClientRect(handeller_to_window, &rc);
@@ -1377,14 +1390,135 @@ ID2D1Bitmap* DrawBitmapOnWindow(
     IWICFormatConverter* pConverter = NULL;
     wicFactory->CreateFormatConverter(&pConverter);
 
-    pConverter->Initialize(
+    if(flip == true)
+    {
+        if(pBitmap_main == pBitmap_)
+        {
+            if(flip_or_not == false)
+            {
+                pConverter->Initialize(
+                pBitmap_flip,
+                GUID_WICPixelFormat32bppPBGRA,
+                WICBitmapDitherTypeNone,
+                NULL,
+                0.f,
+                WICBitmapPaletteTypeMedianCut
+                );
+                flip_or_not = true;
+            }
+            else
+            {
+                pConverter->Initialize(
+                pBitmap_,
+                GUID_WICPixelFormat32bppPBGRA,
+                WICBitmapDitherTypeNone,
+                NULL,
+                0.f,
+                WICBitmapPaletteTypeMedianCut
+                );
+                flip_or_not = false;
+            }
+        }
+        else if(pBitmap_main == pBitmap_2)
+        {
+            if(flip_or_not == false)
+            {
+
+                pConverter->Initialize(
+                pBitmap_2_flip,
+                GUID_WICPixelFormat32bppPBGRA,
+                WICBitmapDitherTypeNone,
+                NULL,
+                0.f,
+                WICBitmapPaletteTypeMedianCut
+                );
+                flip_or_not = true;
+            }
+            else
+            {
+                pConverter->Initialize(
+                pBitmap_2,
+                GUID_WICPixelFormat32bppPBGRA,
+                WICBitmapDitherTypeNone,
+                NULL,
+                0.f,
+                WICBitmapPaletteTypeMedianCut
+                );
+                flip_or_not = false;
+            }
+        }
+        else if(pBitmap_main == pBitmap_3)
+        {
+            if(flip_or_not == false)
+            {
+                pConverter->Initialize(
+                pBitmap_3_flip,
+                GUID_WICPixelFormat32bppPBGRA,
+                WICBitmapDitherTypeNone,
+                NULL,
+                0.f,
+                WICBitmapPaletteTypeMedianCut
+                );
+                flip_or_not = true;
+            }
+            else
+            {
+                pConverter->Initialize(
+                pBitmap_3,
+                GUID_WICPixelFormat32bppPBGRA,
+                WICBitmapDitherTypeNone,
+                NULL,
+                0.f,
+                WICBitmapPaletteTypeMedianCut
+                );
+                flip_or_not = false;
+            }
+        }
+        else if(pBitmap_main == pBitmap_4)
+        {
+            if(flip_or_not == false)
+            {
+                std::cout<<"flip_or_not false"<<std::endl;
+                pConverter->Initialize(
+                pBitmap_4_flip,
+                GUID_WICPixelFormat32bppPBGRA,
+                WICBitmapDitherTypeNone,
+                NULL,
+                0.f,
+                WICBitmapPaletteTypeMedianCut
+                );
+                flip_or_not = true;
+            }
+            else
+            {
+                std::cout<<"flip_or_not true"<<std::endl;
+                pConverter->Initialize(
+                pBitmap_4,
+                GUID_WICPixelFormat32bppPBGRA,
+                WICBitmapDitherTypeNone,
+                NULL,
+                0.f,
+                WICBitmapPaletteTypeMedianCut
+                );
+                flip_or_not = false;
+            }
+        }
+    }
+    else
+    {
+        pConverter->Initialize(
         pWicBitmap_,
         GUID_WICPixelFormat32bppPBGRA,
         WICBitmapDitherTypeNone,
         NULL,
         0.f,
         WICBitmapPaletteTypeMedianCut
-    );
+        );
+        flip_or_not = false;
+    }
+
+
+
 
     //ID2D1Bitmap* D2DpBitmap = NULL;
 
@@ -1398,11 +1532,12 @@ ID2D1Bitmap* DrawBitmapOnWindow(
     //D2D1_SIZE_F size = pBitmap->GetSize();
     D2D1_POINT_2F upperLeftCorner = D2D1::Point2F(0.f, 0.f);
     pRT->BeginDraw();
-    pRT->Clear();
+
 
     ///draw in the original size
-    if(pWicBitmap_ == pBitmap_4)//MMG
+    if(/*pWicBitmap_ == pBitmap_4*/pBitmap_main == pBitmap_4 )//MMG
     {
+        pRT->Clear(D2D1::ColorF(D2D1::ColorF::White));
         pRT->DrawBitmap(
         D2DpBitmap,
         D2D1::RectF(
@@ -1411,11 +1546,12 @@ ID2D1Bitmap* DrawBitmapOnWindow(
         upperLeftCorner.x + w_MMG,
         upperLeftCorner.y + h_MMG)
         );
-
+        //std::cout<<"draw not flipped"<<std::endl;
         MMG_or_Maxcupper = true;
     }
-    else    //max cupper
+    else     //max cupper
     {
+        pRT->Clear(D2D1::ColorF(D2D1::ColorF::Black));
         pRT->DrawBitmap(
         D2DpBitmap,
         D2D1::RectF(
@@ -1430,6 +1566,7 @@ ID2D1Bitmap* DrawBitmapOnWindow(
 
     pRT->EndDraw();
 
+    pBitmap_main = pWicBitmap_;
 
     return D2DpBitmap;
 }
@@ -1908,6 +2045,20 @@ ID2D1Bitmap* DrawGerberOnBitmab(
         return NULL;
     }
 
+    pBitmap_= NULL;
+    pBitmap_2= NULL;
+    pBitmap_3= NULL;
+    pBitmap_4= NULL;
+    pBitmap_flip= NULL;
+    pBitmap_2_flip= NULL;
+    pBitmap_3_flip= NULL;
+    pBitmap_4_flip= NULL;
+
+
+
+
+
+
     if (wicFactory_ == NULL)
     {
         CoCreateInstance(
@@ -1931,11 +2082,11 @@ ID2D1Bitmap* DrawGerberOnBitmab(
     w = puiWidth;
     h = puiHeight;
 
-    if (pBitmap_ == NULL)
-    {
-        WICPixelFormatGUID formatGUID = GUID_WICPixelFormat32bppPBGRA;//format of bitmap
-        wicFactory_->CreateBitmap(puiWidth, puiHeight, formatGUID, WICBitmapCacheOnDemand, &pBitmap_);
-    }
+    /*if (pBitmap_ == NULL)
+    {*/
+       // WICPixelFormatGUID formatGUID = GUID_WICPixelFormat32bppPBGRA;//format of bitmap
+        wicFactory_->CreateBitmap(puiWidth, puiHeight, GUID_WICPixelFormat32bppPBGRA, WICBitmapCacheOnDemand, &pBitmap_);
+    //}
 
     //create factorty
     if (pFactory_ == NULL)
@@ -1943,13 +2094,13 @@ ID2D1Bitmap* DrawGerberOnBitmab(
         D2D1CreateFactory(
             D2D1_FACTORY_TYPE_SINGLE_THREADED, &pFactory_);
     }
-    if (pWicRenderTarget_ == NULL)
-    {
+    /*if (pWicRenderTarget_ == NULL)
+    {*/
         pFactory_->CreateWicBitmapRenderTarget(
             pBitmap_,
             D2D1::RenderTargetProperties(),
             &pWicRenderTarget_);
-    }
+    //}
 
 
     //create brush
@@ -2475,11 +2626,11 @@ ID2D1Bitmap* DrawGerberOnBitmab(
     //IWICBitmap* pBitmap_2=NULL;
     pWicRenderTarget_->Release();
     pWicRenderTarget_ = NULL;
-    if (pBitmap_2 == NULL)
-    {
+    /*if (pBitmap_2 == NULL)
+    {*/
         GUID_WICPixelFormat32bppPBGRA;//format of bitmap
         wicFactory_->CreateBitmap(puiWidth, puiHeight, GUID_WICPixelFormat32bppPBGRA, WICBitmapCacheOnDemand, &pBitmap_2);
-    }
+    //}
     pFactory_->CreateWicBitmapRenderTarget(
         pBitmap_2,
         D2D1::RenderTargetProperties(),
@@ -2676,8 +2827,49 @@ ID2D1Bitmap* DrawGerberOnBitmab(
 
     DrawDrills_xln(pv_total,cb_stride,DrillsStr, coord_digits_x, coord_digits_y, Shift_X, Shift_Y, scale);
 
+    std::cout<<"start flip"<<std::endl;
+
+    /*if (pBitmap_flip == NULL)
+    {*/
+      //  WICPixelFormatGUID formatGUID = GUID_WICPixelFormat32bppPBGRA;//format of bitmap
+        wicFactory_->CreateBitmap(puiWidth, puiHeight, GUID_WICPixelFormat32bppPBGRA, WICBitmapCacheOnDemand, &pBitmap_flip);
+    //}
+    /*if (pBitmap_2_flip == NULL)
+    {*/
+       // WICPixelFormatGUID formatGUID = GUID_WICPixelFormat32bppPBGRA;//format of bitmap
+        wicFactory_->CreateBitmap(puiWidth, puiHeight, GUID_WICPixelFormat32bppPBGRA, WICBitmapCacheOnDemand, &pBitmap_2_flip);
+    //}
+    /*if (pBitmap_3_flip == NULL)
+    {*/
+      //  WICPixelFormatGUID formatGUID = GUID_WICPixelFormat32bppPBGRA;//format of bitmap
+        wicFactory_->CreateBitmap(puiWidth, puiHeight, GUID_WICPixelFormat32bppPBGRA, WICBitmapCacheOnDemand, &pBitmap_3_flip);
+    //}
+    /*if (pBitmap_4_flip == NULL)
+    {*/
+       // WICPixelFormatGUID formatGUID = GUID_WICPixelFormat32bppPBGRA;//format of bitmap
+        //wicFactory_->CreateBitmap(puiWidth, puiHeight, GUID_WICPixelFormat32bppPBGRA, WICBitmapCacheOnDemand, &pBitmap_4_flip);
+    //}
+std::cout<<"start flip"<<std::endl;
+    BYTE* pv_filp = lockMeoryBitmap(pBitmap_flip, puiWidth, puiHeight, cb_stride,cb_BufferSize);
+    BYTE* pv_2_filp = lockMeoryBitmap(pBitmap_2_flip, puiWidth, puiHeight, cb_stride,cb_BufferSize);
+    BYTE* pv_3_filp = lockMeoryBitmap(pBitmap_3_flip, puiWidth, puiHeight, cb_stride,cb_BufferSize);
+   // BYTE* pv_4_filp = lockMeoryBitmap(pBitmap_4_flip, puiWidth, puiHeight, cb_stride,cb_BufferSize);
+    std::cout<<"start flip"<<std::endl;
+    for(int k=0; k<cb_BufferSize;k++)
+    {
+        *(pv_filp + k) = *(pv_maxcupper_with_drills + k);
+        *(pv_2_filp + k) = *(pv_gerber + k);
+        *(pv_3_filp + k) = *(pv_total + k);
+        //*(pv_4_filp + k) = *(pv_maxcupper_with_drills + k);
+    }
+
+
+
+
 
     flipBitmap(pv_maxcupper_with_drills,pv_gerber,pv_total,cb_BufferSize,cb_stride,puiHeight,puiWidth);
+
+    pBitmap_main = pBitmap_;
 
     //DrawBitmapOnWindow(handeller_to_window,pFactory_, pBitmap_3,wicFactory_);
     //MessageBoxW(handeller_to_window, L"Done", L"Done", MB_OKCANCEL);
@@ -2717,7 +2909,7 @@ ID2D1Bitmap* DrawGerberOnBitmab(
 
 void Resize(HWND handeller_to_window,ID2D1HwndRenderTarget* pRT, ID2D1Bitmap* D2DpBitmap)
 {
-    if(D2DpBitmap == NULL || pRT ==NULL)
+    if(D2DpBitmap == NULL || pRT == NULL)
         return;
 
     RECT rc;
@@ -2729,7 +2921,7 @@ void Resize(HWND handeller_to_window,ID2D1HwndRenderTarget* pRT, ID2D1Bitmap* D2
 
     D2D1_POINT_2F upperLeftCorner = D2D1::Point2F(0.f, 0.f);
     pRT->BeginDraw();
-    pRT->Clear(D2D1::ColorF(D2D1::ColorF::Black));
+
     // Draw a bitmap.
     /*pRT->DrawBitmap(
         D2DpBitmap,
@@ -2743,6 +2935,7 @@ void Resize(HWND handeller_to_window,ID2D1HwndRenderTarget* pRT, ID2D1Bitmap* D2
     ///the original scale
     if(MMG_or_Maxcupper == true)
     {
+        pRT->Clear(D2D1::ColorF(D2D1::ColorF::White));
         pRT->DrawBitmap(
         D2DpBitmap,
         D2D1::RectF(
@@ -2755,6 +2948,7 @@ void Resize(HWND handeller_to_window,ID2D1HwndRenderTarget* pRT, ID2D1Bitmap* D2
     }
     else
     {
+        pRT->Clear(D2D1::ColorF(D2D1::ColorF::Black));
         pRT->DrawBitmap(
         D2DpBitmap,
         D2D1::RectF(
@@ -2778,8 +2972,6 @@ void scale_translation(
     float offset_y
 )
 {
-    if(pRT == NULL)
-        return;
 
     //get the size of the window
     RECT rc;
@@ -2802,6 +2994,9 @@ void scaleResize(
     float offset_y,
     ID2D1Bitmap* D2DpBitmap)
 {
+    if(pBitmap_ == NULL && pBitmap_2 == NULL && pBitmap_3 == NULL && pBitmap_4 == NULL)
+        return;
+
     scale_translation(handeller_to_window, pRT, scale_factor, offset_x, offset_y);
     Resize(handeller_to_window,pRT,D2DpBitmap);
 }
@@ -2921,8 +3116,11 @@ void GetWidthHeightMMG(
 
 void DrawMMG(std::vector <CompressedCommand> commands, float scale)
 {
-    //scale = 10;
-    scale = 1/scale;
+
+    pBitmap_4 = NULL;
+    pBitmap_4_flip = NULL;
+    scale = 1.0/scale;
+    //scale = 1/scale;
     std::cout<<"start MMG"<<std::endl;
 
     UINT width=0;
@@ -2934,15 +3132,17 @@ void DrawMMG(std::vector <CompressedCommand> commands, float scale)
 
     std::cout<<"GetWidthHeightMMG"<<std::endl;
     GetWidthHeightMMG(commands,width,height,shift_x,shift_y,high_level_z,low_level_z,scale);
+    std::cout<<"width: "<<width<<std::endl;
+    std::cout<<"height: "<<height<<std::endl;
     w_MMG = width;
     h_MMG = height;
 
     std::cout<<"GetWidthHeightMMG"<<std::endl;
-     if (pBitmap_4 == NULL)
-    {
+    /* if (pBitmap_4 == NULL)
+    {*/
         GUID_WICPixelFormat32bppPBGRA;//format of bitmap
         wicFactory_->CreateBitmap(width, height, GUID_WICPixelFormat32bppPBGRA, WICBitmapCacheOnDemand, &pBitmap_4);
-    }
+    //}
     pFactory_->CreateWicBitmapRenderTarget(
         pBitmap_4,
         D2D1::RenderTargetProperties(),
@@ -2950,9 +3150,18 @@ void DrawMMG(std::vector <CompressedCommand> commands, float scale)
 
     std::cout<<"start draw"<<std::endl;
     pWicRenderTarget_->BeginDraw();
+
     pWicRenderTarget_->Clear(D2D1::ColorF(D2D1::ColorF::White));
+
+
+    if (pWicBrush == NULL)
+    {
+        const D2D1_COLOR_F color = D2D1::ColorF(255, 0, 0);
+        pWicRenderTarget_->CreateSolidColorBrush(color, &pWicBrush);
+    }
     D2D1_COLOR_F color = D2D1::ColorF(255,0, 0);
     pWicBrush->SetColor(color);
+
     float previousX=0;
     float previousY=0;
     float previousZ=0;
@@ -2963,6 +3172,7 @@ void DrawMMG(std::vector <CompressedCommand> commands, float scale)
     currentX = commands[0].x * scale + shift_x;
     currentY = commands[0].y * scale + shift_y;
     currentZ = commands[0].z;
+
     for(int i =0; i<commands.size(); i++)
     {
         previousX = currentX;
@@ -2974,15 +3184,15 @@ void DrawMMG(std::vector <CompressedCommand> commands, float scale)
         currentZ = commands[i].z;
         if(currentZ <= low_level_z)
         {
-            pWicRenderTarget_->DrawLine(D2D1::Point2F(previousX, previousY), D2D1::Point2F(currentX, currentY), pWicBrush, 0.7);
-            std::cout<<"line"<<std::endl;
+            pWicRenderTarget_->DrawLine(D2D1::Point2F(previousX, /*h_MMG-*/previousY), D2D1::Point2F(currentX, /*h_MMG-*/currentY), pWicBrush, 1.7);
+            //std::cout<<"line"<<std::endl;
         }
         else
         {
             D2D1_COLOR_F color = D2D1::ColorF(0,0,255);
             pWicBrush->SetColor(color);
-            pWicRenderTarget_->DrawLine(D2D1::Point2F(previousX, previousY), D2D1::Point2F(currentX, currentY), pWicBrush, 0.7);
-            std::cout<<"air"<<std::endl;
+            pWicRenderTarget_->DrawLine(D2D1::Point2F(previousX, /*h_MMG-*/previousY), D2D1::Point2F(currentX, /*h_MMG-*/currentY), pWicBrush, 1.7);
+            //std::cout<<"air"<<std::endl;
             color = D2D1::ColorF(255,0,0);
             pWicBrush->SetColor(color);
         }
@@ -2991,6 +3201,139 @@ void DrawMMG(std::vector <CompressedCommand> commands, float scale)
     std::cout<<"End draw MMG"<<std::endl;
     pWicRenderTarget_->EndDraw();
 
+    UINT cb_stride=0;
+    UINT cb_BufferSize = 0;
+    wicFactory_->CreateBitmap(width, height, GUID_WICPixelFormat32bppPBGRA, WICBitmapCacheOnDemand, &pBitmap_4_flip);
+    BYTE* pv_4_flip = lockMeoryBitmap(pBitmap_4_flip, width, height, cb_stride,cb_BufferSize);
 
+    BYTE* pv_4 = lockMeoryBitmap(pBitmap_4, width, height, cb_stride,cb_BufferSize);
+
+
+    for(int k=0; k<cb_BufferSize;k++)
+    {
+        *(pv_4_flip + k) = *(pv_4 + k);
+    }
+
+
+    BYTE* pvTemp_4 = new BYTE[cb_BufferSize];
+    for (UINT i = 0; i < height; i++)
+    {
+        for (UINT j = 0; j < width; j++)
+        {
+            UINT BB = 0;
+            UINT GG = 0;
+            UINT RR = 0;
+            UINT A = 0;
+            get_pixel(pv_4_flip, cb_stride, j, i, BB, GG, RR, A);
+            set_pixel(pvTemp_4, cb_stride, j, height-i-1, BB, GG, RR,A);
+        }
+    }
+
+    for(int k=0; k<cb_BufferSize;k++)
+    {
+      //  if(*(pvTemp_4 + k) != 255)
+           // std::cout<<"not white"<<std::endl;
+        *(pv_4_flip + k) = *(pvTemp_4 + k);
+    }
+
+    pBitmap_main = pBitmap_4;
 }
 
+
+
+void DrawAceleration(std::vector <OutCommand> commands)
+{
+    char previousX=0;
+    char previousY=0;
+    char previousZ=0;
+    char currentX = 0 /* * scale + shift_x*/;
+    char currentY = 0 /* * scale + shift_y*/;
+    char currentZ = 0;
+
+    D2D1_COLOR_F colorB = D2D1::ColorF(D2D1::ColorF::Black);
+    D2D1_COLOR_F colorP = D2D1::ColorF(D2D1::ColorF::Purple);
+    D2D1_COLOR_F colorN = D2D1::ColorF(D2D1::ColorF::Blue);
+    D2D1_COLOR_F colorCB = D2D1::ColorF(D2D1::ColorF::CadetBlue);
+    D2D1_COLOR_F colorG = D2D1::ColorF(D2D1::ColorF::Green);
+    D2D1_COLOR_F colorY = D2D1::ColorF(D2D1::ColorF::Yellow);
+    D2D1_COLOR_F colorO = D2D1::ColorF(D2D1::ColorF::Orange);
+    D2D1_COLOR_F colorR = D2D1::ColorF(D2D1::ColorF::Red);
+
+    //pWicRenderTarget_ now will draw on Bitmap_4 (MMG bitmap)
+    pWicRenderTarget_->BeginDraw();
+    for(int i =0; i<commands.size(); i++)
+    {
+        //steps
+        previousX = currentX;
+        previousY = currentY;
+        previousZ = currentZ;
+        std::cout<<"Draw Steps with acc: "<<"previousX: "<<previousX<<"previousY: "<<previousY;
+        //0b10000000 -> -x
+        if(commands[i].acc &0b10000000 == 0b10000000)
+        {
+            currentX = previousX - commands[i].x /* * scale + shift_x*/;
+        }
+        else
+        {
+            currentX = previousX + commands[i].x /* * scale + shift_x*/;
+        }
+        ////0b01000000 -> -y
+        if(commands[i].acc &0b01000000 == 0b01000000)
+        {
+            currentY = previousX - commands[i].y /* * scale + shift_y*/;
+        }
+        else
+        {
+            currentY = previousX + commands[i].y /* * scale + shift_y*/;
+        }
+        ////0b00100000 -> -z
+        if(commands[i].acc &0b00100000 == 0b00100000)
+        {
+            currentZ = previousX - commands[i].z;
+        }
+        else
+        {
+            currentZ = previousX + commands[i].z;
+        }
+        /////////////
+
+        //Acc
+        if(commands[i].acc & 0b00000111 == 0b00000111)
+        {
+            pWicBrush->SetColor(colorR);
+        }
+        else if(commands[i].acc &0b00000111 ==0b00000110)
+        {
+            pWicBrush->SetColor(colorO);
+        }
+        else if(commands[i].acc &0b00000111 ==0b00000101)
+        {
+            pWicBrush->SetColor(colorY);
+        }
+        else if(commands[i].acc &0b00000111 ==0b00000100)
+        {
+            pWicBrush->SetColor(colorG);
+        }
+        else if(commands[i].acc &0b00000111 ==0b00000011)
+        {
+            pWicBrush->SetColor(colorCB);
+        }
+        else if(commands[i].acc &0b00000111 ==0b00000010)
+        {
+            pWicBrush->SetColor(colorN);
+        }
+        else if(commands[i].acc &0b00000111 ==0b00000001)
+        {
+            pWicBrush->SetColor(colorP);
+        }
+        else if(commands[i].acc &0b00000111 ==0b00000000)
+        {
+            pWicBrush->SetColor(colorB);
+        }
+
+        pWicRenderTarget_->DrawLine(D2D1::Point2F(previousX, previousY), D2D1::Point2F(currentX, currentY), pWicBrush, 0.7);
+        std::cout<<"->"<<"currentX: "<<currentX<<"currentX: "<<currentY<<std::endl;
+
+    }
+    pWicRenderTarget_->EndDraw();
+}

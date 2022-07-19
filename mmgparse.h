@@ -3,7 +3,7 @@
 #include<vector>
 #include "cmds.h"
 
-std::vector<CompressedCommand> MMG_PARSE(char* str);
+std::vector<CompressedCommand> MMG_PARSE(const char* str);
 /*this function gets the MMG file in array of char and returns vector of structs "CompressedCommand" the array of char is about MMG commands and
 after each command a new line character "\n"  */
 

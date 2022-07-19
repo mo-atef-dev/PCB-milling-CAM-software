@@ -19,11 +19,8 @@
 			<Target title="Release">
 				<Option output="bin/Release/PCBSoftware" prefix_auto="1" extension_auto="1" />
 				<Option object_output="obj/Release/" />
-				<Option type="1" />
+				<Option type="0" />
 				<Option compiler="gcc" />
-				<Compiler>
-					<Add option="-O2" />
-				</Compiler>
 				<Linker>
 					<Add option="-s" />
 				</Linker>
@@ -43,6 +40,7 @@
 			<Add library="ole32" />
 			<Add library="windowscodecs" />
 			<Add library="usb-1.0" />
+			<Add library="shlwapi" />
 		</Linker>
 		<Unit filename="BMP.h" />
 		<Unit filename="app.cpp" />
@@ -55,6 +53,8 @@
 		<Unit filename="main.cpp" />
 		<Unit filename="maxCupper_loading.cpp" />
 		<Unit filename="maxCupper_loading.h" />
+		<Unit filename="mmgparse.cpp" />
+		<Unit filename="mmgparse.h" />
 		<Unit filename="resource.h" />
 		<Unit filename="resources.rc">
 			<Option compilerVar="WINDRES" />

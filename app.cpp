@@ -227,13 +227,36 @@ BOOL CALLBACK DlgProc_MaxCopper(HWND hwndDlg, UINT message, WPARAM wParam, LPARA
     switch (message)
     {
     case WM_INITDIALOG:
-        pResult = (DlgStrct_MaxCopper*)lParam;
+        {
+            pResult = (DlgStrct_MaxCopper*)lParam;
 
-        // Set the default values of the dialog
-        SetDlgItemText(hwndDlg, IDC_EDIT_PTOM, "0.1");
-        SetDlgItemText(hwndDlg, IDC_EDIT_ZTOP, "2");
-        SetDlgItemText(hwndDlg, IDC_EDIT_ZBOT, "-0.25");
+            /// Set the default values of the dialog
+            //SetDlgItemText(hwndDlg, IDC_EDIT_PTOM, "0.1"); Not needed since the amount of mm per pixel is now not user editable
+            SetDlgItemText(hwndDlg, IDC_EDIT_ZTOP, "2");
+            SetDlgItemText(hwndDlg, IDC_EDIT_ZBOT, "-0.25");
 
+            /// Populate the max speed combo box
+            char tempArr[3] = "0";
+            HWND comBox;
+            comBox = GetDlgItem(hwndDlg, IDC_EDIT_SPD);
+            SendMessage(comBox, (UINT) CB_ADDSTRING, (WPARAM) 0, (LPARAM) tempArr);
+            tempArr[0] = '1';
+            SendMessage(comBox, (UINT) CB_ADDSTRING, (WPARAM) 0, (LPARAM) tempArr);
+            tempArr[0] = '2';
+            SendMessage(comBox, (UINT) CB_ADDSTRING, (WPARAM) 0, (LPARAM) tempArr);
+            tempArr[0] = '3';
+            SendMessage(comBox, (UINT) CB_ADDSTRING, (WPARAM) 0, (LPARAM) tempArr);
+            tempArr[0] = '4';
+            SendMessage(comBox, (UINT) CB_ADDSTRING, (WPARAM) 0, (LPARAM) tempArr);
+            tempArr[0] = '5';
+            SendMessage(comBox, (UINT) CB_ADDSTRING, (WPARAM) 0, (LPARAM) tempArr);
+            tempArr[0] = '6';
+            SendMessage(comBox, (UINT) CB_ADDSTRING, (WPARAM) 0, (LPARAM) tempArr);
+            tempArr[0] = '7';
+            SendMessage(comBox, (UINT) CB_ADDSTRING, (WPARAM) 0, (LPARAM) tempArr);
+
+            SendMessage(comBox, (UINT) CB_SETCURSEL, (WPARAM) 7, (LPARAM) 0); // Set default to 7
+        }
         break;
     case WM_COMMAND:
         switch (LOWORD(wParam))
@@ -242,6 +265,8 @@ BOOL CALLBACK DlgProc_MaxCopper(HWND hwndDlg, UINT message, WPARAM wParam, LPARA
             char lpString[10];
             pResult->valid = true;
 
+            /// This section is commented since mm per pixel is no longer user editable
+            /*
             GetDlgItemText(hwndDlg, IDC_EDIT_PTOM, lpString, 10);
             // Check that the string has only positive characters and a single decimal point
             for(int i = 0; i < 10 && lpString[i] != 0; i++)
@@ -256,6 +281,9 @@ BOOL CALLBACK DlgProc_MaxCopper(HWND hwndDlg, UINT message, WPARAM wParam, LPARA
             }
 
             pResult->pixTomm = atof(lpString);
+            */
+            // Set the pixTomm to the universal constant
+            pResult->pixTomm = pixTomm;
 
             GetDlgItemText(hwndDlg, IDC_EDIT_ZTOP, lpString, 10);
             // Check that the string has only digits, minus sign, and decimal points
@@ -287,12 +315,41 @@ BOOL CALLBACK DlgProc_MaxCopper(HWND hwndDlg, UINT message, WPARAM wParam, LPARA
 
             pResult->zBottom = (atof(lpString)) / pResult->pixTomm;
 
+            GetDlgItemText(hwndDlg, IDC_EDIT_SPD, lpString, 10);
+            pResult->maxSpd = atoi(lpString);
+
         // Fall through.
 
         case ID_CANCEL:
             EndDialog(hwndDlg, wParam);
             return TRUE;
         }
+    }
+    return FALSE;
+}
+
+/// Currently unused and not finished
+BOOL CALLBACK DlgProc_FileName(HWND hwndDlg, UINT message, WPARAM wParam, LPARAM lParam)
+{
+    static LPSTR szName;
+
+    switch(message)
+    {
+        case WM_INITDIALOG:
+        szName = (LPSTR)lParam;
+        break;
+        case WM_COMMAND:
+            switch (LOWORD(wParam))
+            {
+            case ID_OK:
+
+
+            // Fall through.
+            case ID_CANCEL:
+                EndDialog(hwndDlg, wParam);
+                return TRUE;
+            }
+        break;
     }
     return FALSE;
 }
@@ -305,6 +362,7 @@ LRESULT CALLBACK WinProc_Layers(HWND hwnd, UINT message, WPARAM wParam, LPARAM l
     static CMNTextBox txtBox_trace;
     static CMNTextBox txtBox_cmds;
     static CMNTextBox txtBox_mmg;
+    static CMNTextBox txtBox_filename;
 
     static CMNLabel label_copper;
     static CMNLabel label_border;
@@ -312,6 +370,7 @@ LRESULT CALLBACK WinProc_Layers(HWND hwnd, UINT message, WPARAM wParam, LPARAM l
     static CMNLabel label_trace;
     static CMNLabel label_cmds;
     static CMNLabel label_mmg;
+    static CMNLabel label_filename;
 
     //static CMNButton btn_copper;
     //static CMNButton btn_border;
@@ -354,6 +413,12 @@ LRESULT CALLBACK WinProc_Layers(HWND hwnd, UINT message, WPARAM wParam, LPARAM l
             yoffset = yoffset + layersItemsSpacing/4 + 20 + layersItemsSpacing*2;
             label_cmds.InitLabel(hwnd, 0, GetModuleHandle(NULL), layersPadding, yoffset, layersWidth-2*layersPadding, 20, WS_CHILD | WS_VISIBLE, "Generated Commands File");
             txtBox_cmds.InitBox(hwnd, 0, GetModuleHandle(NULL), layersPadding, yoffset + layersItemsSpacing/4 + 20, layersWidth-4*layersPadding, 20, CMNTXT_READONLY);
+
+            yoffset = yoffset + layersItemsSpacing/4 + 20 + layersItemsSpacing*2;
+            yoffset = yoffset + layersItemsSpacing/4 + 20 + layersItemsSpacing*2;
+            yoffset = yoffset + layersItemsSpacing/4 + 20 + layersItemsSpacing*2;
+            label_filename.InitLabel(hwnd, 0, GetModuleHandle(NULL), layersPadding, yoffset, layersWidth-2*layersPadding, 20, WS_CHILD | WS_VISIBLE, "Output Name");
+            txtBox_filename.InitBox(hwnd, 0, GetModuleHandle(NULL), layersPadding, yoffset + layersItemsSpacing/4 + 20, layersWidth-4*layersPadding, 20, CMNTXT_BASE);
             //btn_cmds.InitButton(hwnd, 0, GetModuleHandle(NULL), layersWidth - layersItemsSpacing*4, yoffset + layersItemsSpacing/4 + 20, layersItemsSpacing*4-layersPadding, 20, BS_DEFPUSHBUTTON | WS_CHILD | WS_VISIBLE, "Browse");
         }
         break;
@@ -375,6 +440,9 @@ LRESULT CALLBACK WinProc_Layers(HWND hwnd, UINT message, WPARAM wParam, LPARAM l
 
         if(szCmdsPath)
             txtBox_cmds.SetText(szCmdsPath, MAX_PATH);
+        break;
+    case WMU_GETOUTNAME:
+        txtBox_filename.GetText((LPWSTR)lParam, (DWORD) wParam);
         break;
     default:
         return DefWindowProc (hwnd, message, wParam, lParam);
@@ -411,12 +479,21 @@ int App_OpenBorderFile(HWND hwnd)
 int App_OpenTraceImage(HWND hwnd)
 {
     int r = App_OpenFile(hwnd, szTracePath, szGerberBuffer, false, L"Image (.bmp)\0*.bmp\0", 1);
-    if(pTraceImage != NULL)
+
+    if(wcslen(szTracePath) > 1)
+    {
+        if(pTraceImage != NULL)
         delete pTraceImage;
-    std::wstring w_str(szTracePath);
-    pTraceImage = new bitmap_image(string(w_str.begin(), w_str.end()));
-    if(r == 0) EnableMenuItem(menu, ID_MMG, MF_ENABLED);
-    return r;
+        std::wstring w_str(szTracePath);
+        pTraceImage = new bitmap_image(string(w_str.begin(), w_str.end()));
+        if(r == 0) EnableMenuItem(menu, ID_MMG, MF_ENABLED);
+        return r;
+    }
+    // Occurs when user cancels dialog
+    else
+    {
+        return r;
+    }
 }
 
 int App_OpenCopperImage(HWND hwnd)
@@ -428,12 +505,24 @@ int App_OpenMMGFile(HWND hwnd)
 {
     CHAR* szTempBuffer = NULL;
     int r = App_OpenFile(hwnd, szMMGPath, szTempBuffer, true, L"All\0*.*\0Model Master 3 Axis (.mmg)\0*.mmg\0", 1);
-    string tempStr(szTempBuffer);
-    mmgString = tempStr;
-    delete[] szTempBuffer;
-    szTempBuffer = NULL;
-    if(r == 0) EnableMenuItem(menu, ID_CMDS, MF_ENABLED);
-    return r;
+
+    // Occurs when user cancels dialog
+    if(szTempBuffer == NULL)
+    {
+        return r;
+    }
+    else
+    {
+        string tempStr(szTempBuffer);
+        mmgString = tempStr;
+
+        DrawMMG(MMG_PARSE(szTempBuffer), pixTomm);
+
+        delete[] szTempBuffer;
+        szTempBuffer = NULL;
+        if(r == 0) EnableMenuItem(menu, ID_CMDS, MF_ENABLED);
+        return r;
+    }
 }
 
 int App_OpenCommands(HWND hwnd)
@@ -550,6 +639,25 @@ int App_GetTraceInputs(DlgStrct_MaxCopper& result, HWND hwndParent)
     return 1;
 }
 
+int App_GetSaveFileName(LPWSTR name, HWND hwndEditParent, DWORD length)
+{
+    // Get name from edit control
+    SendMessage(hwndEditParent, WMU_GETOUTNAME, (WPARAM) length, (LPARAM) name);
+
+    // Filter name for any non alpha numeric characters
+    #warning "Todo: filtering here"
+
+    // Check for errors
+    if(wcslen(name) < 1)
+    {
+        MessageBox(NULL, "No file name is entered, file name will be set to \"out\"", "Warning", MB_OK | MB_ICONWARNING);
+        wcscpy(name, L"out");
+    }
+
+    // Return 1 if everything is correct
+    return 1;
+}
+
 int App_BitmaptoMMG(bitmap_image* pTraceImage, std::string& mmg, const DlgStrct_MaxCopper& result, std::vector<Command>& pixCmds, bool simplify)
 {
     PixelMatrix pm(pTraceImage->width(), pTraceImage->height());
@@ -580,6 +688,7 @@ int App_SaveMMG(const LPWSTR swzPath, const std::string& mmg)
         if(WriteFile(hfile_mmg, mmg.c_str(), mmg.size(), &writtenBytes, NULL))
         {
             printf("Successfully written the output file out.mmg with total amount of %d bytes written\n", writtenBytes);
+            wcscpy_s(szMMGPath, MAX_PATH, swzPath);
         }
         else
         {
@@ -652,6 +761,7 @@ int App_SaveCMDs(const LPWSTR swzPath,  const std::vector<OutCommand>& cmds, HWN
         if(WriteFile(hfile_cmd, outBuff, l*4, &writtenBytes, NULL))
         {
             printf("Successfully written the output file out.hex with total amount of %d bytes written\n", writtenBytes);
+            wcscpy_s(szCmdsPath, MAX_PATH, swzPath);
         }
         else
         {

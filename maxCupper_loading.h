@@ -33,6 +33,10 @@ extern IWICBitmap* pBitmap_2 /*= NULL*/;   //gerber
 extern IWICBitmap* pBitmap_3 /*= NULL*/;   //maxcupper and gerber
 extern IWICBitmap* pBitmap_4 /*= NULL*/;   //mmg
 
+
+
+extern IWICBitmap* pBitmap_main/* = NULL*/;   //all
+
 extern ID2D1Bitmap* D2DpBitmap /*= NULL*/;
 extern ID2D1HwndRenderTarget* pRT /*= NULL*/;
 extern ID2D1SolidColorBrush* pWindowBrush /*=NULL*/;
@@ -43,7 +47,7 @@ extern UINT h;
 extern UINT w_MMG;
 extern UINT h_MMG;
 extern float fraction_to_reduce /* = 0.05*/;
-
+extern bool flip_or_not /*=false*/;
 
 /// <summary>
 /// Initialize render target and brush
@@ -566,7 +570,8 @@ ID2D1Bitmap* DrawBitmapOnWindow(
     HWND handeller_to_window,
     ID2D1Factory* pFactory,
     IWICBitmap* pWicBitmap_,
-    IWICImagingFactory* wicFactory
+    IWICImagingFactory* wicFactory,
+    bool flip = false
 );
 
 /// <summary>
@@ -698,12 +703,21 @@ void BeginDrawOnWindow();
 
 void EndDrawOnWindow();
 
+void GetWidthHeightMMG(
+    std::vector <CompressedCommand> commands,
+    UINT& puiWidth, //output
+    UINT& puiHeight, //output
+    float& Shift_X,
+    float& Shift_Y,
+    float& high_level_Z,
+    float& low_level_Z,
+    float scale);
 
 
 void DrawMMG(std::vector <CompressedCommand> commands, float scale = 0.1);
 
 
-
+void DrawAceleration(std::vector <OutCommand> commands);
 
 
 #endif // MAXCOPPER_H_INCLUDED

@@ -8,12 +8,10 @@
 #include<vector>
 
 using namespace std;
-
 int msp=7; // this parameter is contains the maximum speed value this parameter is set by the function "SetMaxSpeed(int x)"
-
 int StepPerSpeed  = 10;
 vector<OutCommand> vout;
-void SplitLines(int x,int y,int z,unsigned __int8 speed1,unsigned __int8 speed2,unsigned __int8 acc);
+void SplitLines(int x,int y,int z,unsigned __int8 speed1,unsigned __int8 speed2,unsigned __int8 acc); 
 void SetMaxSpeed(int x)
 {
     msp=x;
@@ -657,8 +655,14 @@ vector<OutCommand> step_mov(vector <CompressedCommand> v,float xstep, float yste
             {
                 acc |= 0x20;
             }
-
-            currnt_speed = GetSpeed3D(priv_x,currnt_x,next_x,priv_y,currnt_y,next_y,priv_z,currnt_z,next_z);
+			if (msp>0)
+			{currnt_speed = GetSpeed3D(priv_x,currnt_x,next_x,priv_y,currnt_y,next_y,priv_z,currnt_z,next_z);}
+			
+		
+		
+		
+		
+		
             //  cout<<currnt_speed<<endl;
             Dlist.Add_Line(currnt_speed,step_x,step_y,step_z,acc);
 

@@ -1,6 +1,7 @@
 #ifndef FINALS_H_INCLUDED
 #define FINALS_H_INCLUDED
 #include<vector>
+
 struct CompressedCommand       // this struct is to hold the input commands
 {
      float x;
