@@ -245,30 +245,19 @@ LRESULT CALLBACK WindowProcedure (HWND hwnd, UINT message, WPARAM wParam, LPARAM
                     App_OpenCommands(hwnd);
                 break;
             case ID_VCPR:
-                disp = 0;
                 DrawBitmapOnWindow(drawWnd,pFactory_, pBitmap_2,wicFactory_);
                 break;
             case ID_VMAX:
-                disp = 1;
                 DrawBitmapOnWindow(drawWnd,pFactory_, pBitmap_,wicFactory_);
                 break;
             case ID_VBOTH:
-                disp = 2;
                 DrawBitmapOnWindow(drawWnd,pFactory_, pBitmap_3,wicFactory_);
                 break;
             case ID_VTPTH:
-                disp = 3;
                 DrawBitmapOnWindow(drawWnd,pFactory_, pBitmap_4,wicFactory_);
                 break;
             case ID_VFLIP:
-                if(disp == 0)
-                    DrawBitmapOnWindow(drawWnd,pFactory_, pBitmap_2,wicFactory_);
-                else if(disp == 1)
-                    DrawBitmapOnWindow(drawWnd,pFactory_, pBitmap_,wicFactory_);
-                else if(disp == 2)
-                    DrawBitmapOnWindow(drawWnd,pFactory_, pBitmap_3,wicFactory_);
-                else if(disp == 3)
-                    DrawBitmapOnWindow(drawWnd,pFactory_, pBitmap_4,wicFactory_);
+                DrawBitmapOnWindow(drawWnd,pFactory_, pBitmap_main,wicFactory_, true);
                 break;
             case ID_DOWNLOAD:
                 {
@@ -279,14 +268,22 @@ LRESULT CALLBACK WindowProcedure (HWND hwnd, UINT message, WPARAM wParam, LPARAM
                         // Open the file and store in a buffer
                         HANDLE hfile = CreateFileW(szCmdsPath, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
                         unsigned char* FileBuffer = NULL;
-                        unsigned char FileName[] = "out.bin";
+                        unsigned char FileName[MAX_PATH];
+
+                        // This section to convert from unicode to ascii
+                        wstring w_str(szCmdsPath);
+                        string str(w_str.begin(), w_str.end());
+                        strcpy((char*)FileName, str.c_str());
+
+                        // Remove the path and only keep the name
+                        PathStripPathA((char*)FileName);
 
                         if(hfile)
                         {
                             DWORD fileSize = GetFileSize(hfile, NULL);
                             if(FileBuffer != NULL)
                                 delete[] FileBuffer;
-                            FileBuffer = new unsigned char[fileSize];    // Extra character to insert a 0 in case the file chosen is not null terminated
+                            FileBuffer = new unsigned char[fileSize + 1];    // Extra character to insert a 0 in case the file chosen is not null terminated
                             DWORD bytesRead = 0;
                             if(ReadFile(hfile, FileBuffer, fileSize, &bytesRead, NULL))
                             {
@@ -297,6 +294,7 @@ LRESULT CALLBACK WindowProcedure (HWND hwnd, UINT message, WPARAM wParam, LPARAM
                                     CloseHandle(hfile);
                                     break;
                                 }
+                                FileBuffer[fileSize] = 0; // Add null character
                             }
                             else
                             {
@@ -318,6 +316,8 @@ LRESULT CALLBACK WindowProcedure (HWND hwnd, UINT message, WPARAM wParam, LPARAM
 
                         for(int i = 0; i < 10; i++)
                         {
+                            printf("Starting download of file: ");
+                            printf((const char*)FileName); printf("\n");
                             r = usb_send(FileBuffer, FileName);
                             if(r)
                             {
@@ -332,7 +332,7 @@ LRESULT CALLBACK WindowProcedure (HWND hwnd, UINT message, WPARAM wParam, LPARAM
                         }
                         if(r == 0)
                         {
-                            printf("Failed to download commands after 10 trys\n");
+                            printf("Failed to download commands after 10 tries\n");
                             MessageBox(hwnd, "Error downloading commands", "Error", MB_OK | MB_ICONERROR);
                         }
                     }
@@ -434,6 +434,9 @@ LRESULT CALLBACK WindowProcedure (HWND hwnd, UINT message, WPARAM wParam, LPARAM
 
                     /// Create a file to store the resulting mmg commands
                     App_SaveMMG(szOutPath, mmgString);
+
+                    // Draw the mmg
+                    DrawMMG(MMG_PARSE(mmgString.c_str()), pixTomm);
 
                     // Replace extension to save a bitmap
                     res = PathRenameExtensionW(szOutPath, L".bmp");
@@ -540,6 +543,9 @@ LRESULT CALLBACK WindowProcedure (HWND hwnd, UINT message, WPARAM wParam, LPARAM
 
                         /// Create a file to store the resulting mmg commands
                         App_SaveMMG(szOutPath, mmgString);
+
+                        // Draw the mmg
+                        DrawMMG(MMG_PARSE(mmgString.c_str()), pixTomm);
 
                         // Replace extension to save a bitmap
                         res = PathRenameExtensionW(szOutPath, L".bmp");

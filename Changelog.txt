@@ -81,3 +81,10 @@ Changes:
 - Added the ability to select max speed
 - Removed the ability to determine the machine resolution and is not fixed at 0.1mm per pixel
 - Fixed a bug where the program crashes when the user cancels mmg open file dialog
+
+-- Version 2022.7.19
+
+Changes:
+- Fixed problems related to flipping view
+- Currently, generated mmg files are automatically set to be the drawn mmg and the path textbox is also changed to point to them
+- Added the ability to download files with USB using the original name of the file instead of a fixed name

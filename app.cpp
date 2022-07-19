@@ -17,9 +17,6 @@ FLOAT origin_x = 0;
 FLOAT origin_y = 0;
 FLOAT img_scale = 1;
 
-/* Global variable to determine drawing mode */
-char disp = 0;
-
 int App_Initialize(HINSTANCE hThisInstance)
 {
     WNDCLASSEX drawCl;
@@ -204,13 +201,6 @@ LRESULT CALLBACK WinProc_Draw(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPa
     case WM_RBUTTONDOWN:
         if(RBDown) break;
         RBDown = true;
-        if(disp == 0)
-            DrawBitmapOnWindow(hwnd,pFactory_, pBitmap_2,wicFactory_);
-        else if(disp == 1)
-            DrawBitmapOnWindow(hwnd,pFactory_, pBitmap_,wicFactory_);
-        else if(disp == 2)
-            DrawBitmapOnWindow(hwnd,pFactory_, pBitmap_3,wicFactory_);
-        disp = (disp+1)%3;
         break;
 
     case WM_RBUTTONUP:

@@ -60,8 +60,6 @@ extern const int layersItemsSpacing;
 
 extern const float pixTomm;
 
-extern char disp;
-
 /// Proc structures
 /// These structures represent data communication between the proc functions and the caller
 struct DlgStrct_MaxCopper
