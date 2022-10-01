@@ -353,6 +353,7 @@ struct aperture
         1 for Circle
         2 for Rectangle
         3 for Obround
+        3 for Obround
         4 for Polygon
     */
     int type;
@@ -462,7 +463,7 @@ void string_to_float_dill(
     int index,
     int coord_digits_x,
     int coord_digits_y,
-    bool LZ_TZ,
+    int LZ_TZ_dec,
     float& x_cord,//output
     float& y_cord,//output
     float scale = 10,
@@ -592,7 +593,6 @@ BYTE* lockMeoryBitmap(IWICBitmap* pWicBitmap, UINT puiWidth, UINT puiHeight, UIN
 /// </summary>
 /// <param name="handeller_to_window">: The handeller to the window</param>
 /// <param name="str">: String represent a gerber file</param>
-/// <param name="size">: size of the window</param>
 /// <param name="coord_digits_x">: number of fraction part of x of the number in the gerber file</param>
 /// <param name="coord_digits_y">: number of fraction part of y of the number in the gerber file</param>
 /// <param name="scale">: The inverse of the mm per pixel</param>
@@ -613,7 +613,7 @@ void GetWidthHeight(
 );
 
 
-
+//Old function to draw drill...now use DrawDrills_xln()
 void DrawDrills_gerber(
     BYTE* pv,
     UINT cb_stride,
@@ -631,14 +631,11 @@ void DrawDrills_gerber(
 /// <param name="pv">: Pointer to the array that represent a circuit</param>
 /// <param name="cb_stride">: The stride of the bitmap that represent a circuit</param>
 /// <param name="str">: String represent a drills Xln file </param>
-/// <param name="size"></param>
 /// <param name="coord_digits_x">: number of fraction part of x of the number in the gerber file</param>
 /// <param name="coord_digits_y">: number of fraction part of y of the number in the gerber file</param>
 /// <param name="Shift_X">: Retern by referance(The output): The value of x axis that shift all the gerber values to the first quarter</param>
 /// <param name="Shift_Y">: Retern by referance(The output): The value of y axis that shift all the gerber values to the first quarter</param>
 /// <param name="scale">: The inverse of the mm per pixel</param>
-/// <param name="pWicRenderTarget">: The render target that will be used to draw the drills </param>
-/// <param name="pWicBrush">: The brush that will be used to draw drills</param>
 void DrawDrills_xln(
     BYTE* pv,
     UINT cb_stride,
@@ -650,6 +647,14 @@ void DrawDrills_xln(
     float scale
 );
 
+/// <summary>
+/// Scale and shift the drawing
+/// </summary>
+/// <param name="handeller_to_window">: handeler to a window that refer to the window that have the drawing</param>
+/// <param name="pRT">: Pointer to rendertarget that will be scalling</param>
+/// <param name="scale_factor">: the factor that will be use to scall the draing</param>
+/// <param name="offset_x">: The value of the drawing shifting in x axis</param>
+/// <param name="offset_y">: The value of the drawing shifting in x axis</param>
 void scale_translation(
     HWND handeller_to_window,
     ID2D1HwndRenderTarget* pRT,
@@ -658,11 +663,16 @@ void scale_translation(
     float offset_y
 );
 
+/// <summary>
+/// Repaint the image when resizing
+/// </summary>
+/// <param name="handeller_to_window"></param>
+/// <param name="pRT">: Pointer to rendertarget that will be scalling</param>
+/// <param name="D2DpBitmap">: Pointer to D2DpBitmap that will resize</param>
 void Resize(HWND handeller_to_window,ID2D1HwndRenderTarget* pRT, ID2D1Bitmap* D2DpBitmap);
 
 
-
-//scale_translation and Resize
+//Mearge: scale_translation and Resize
 void scaleResize(
     HWND handeller_to_window,
     ID2D1HwndRenderTarget* pRT,
@@ -680,6 +690,16 @@ void DrawBorders(
     UINT puiHeight
 );
 
+/// <summary>
+/// Main function that parth the gerber filles and drills and draw thim on the wicBitmap
+/// </summary>
+/// <param name="handeller_to_window">: handeler to a window that refer to the window that have the drawing</param>
+/// <param name="str">: String that have the gerber fille</param>
+/// <param name="profileStr">: String that have the border fille</param>
+/// <param name="DrillsStr">: String that have the drills fille</param>
+/// <param name="scale">: The scale that represent the mmPerpexil</param>
+/// <param name="xln_grb">Drills file format chose true to select xln format and false to select gerber format</param>
+/// <returns></returns>
 ID2D1Bitmap* DrawGerberOnBitmab(
     HWND handeller_to_window,
     char* str,
@@ -702,6 +722,8 @@ void DrawCirculeOnWindow(float xStart, float yStart, float radius, float red, fl
 void BeginDrawOnWindow();
 
 void EndDrawOnWindow();
+
+
 
 void GetWidthHeightMMG(
     std::vector <CompressedCommand> commands,

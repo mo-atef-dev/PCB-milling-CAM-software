@@ -845,9 +845,9 @@ void string_to_float_dill(
 {
 
     /*
-        return 0: decimal format
-        return 1: LZ format
-        return 2: TZ format
+         0: decimal format
+         1: LZ format
+         2: TZ format
     */
     if(LZ_TZ_dec == 0)
     {
@@ -934,13 +934,10 @@ void string_to_float_dill(
             y_cord = y_cord +Shift_Y;
         }
     }
-
-    //LZ_TZ = true -> means that the coordinates  is in LZ type
-    //LZ_TZ = false -> means that the coordinates  is in TZ type
     else if (LZ_TZ_dec == 2)
     {
         //get the end of the line
-        while (str[index] != '\n' && str[index] != 'G')
+        while (str[index] != '\n' && str[index] != 'G' && str[index] != '\r')
         {
             index++;
         }
@@ -949,11 +946,11 @@ void string_to_float_dill(
         int i = 0;
         float x = 0;
         float y = 0;
-        float num = 0;
-        float result = 0;
+        double num = 0;
+        double result = 0;
         index--;
 
-        while (str[index] != '\n' && str[index] != 'G' )
+        while (str[index] != '\n' )
         {
             if (str[index] == '-')
             {
@@ -964,9 +961,13 @@ void string_to_float_dill(
 
             if (str[index] == 'Y')
             {
+
                 result = result * scale;
+                std::cout<<"result: "<<result<<std::endl;
                 y_cord = result * pow(10, -coord_digits_y);
+                std::cout<<"Y_cord: "<<y_cord<<std::endl;
                 y_cord = y_cord + Shift_Y;
+                std::cout<<"y_cord-shift: "<<y_cord<<std::endl;
                 num = 0;
                 i = 0;
                 result = 0;
@@ -977,9 +978,13 @@ void string_to_float_dill(
             }
             else if (str[index] == 'X')
             {
+
                 result = result * scale;
+                std::cout<<"result: "<<result<<std::endl;
                 x_cord = result * pow(10, -coord_digits_x);
+                std::cout<<"x_cord: "<<x_cord<<std::endl;
                 x_cord = x_cord + Shift_X;
+                std::cout<<"x_cord-shift: "<<x_cord<<std::endl;
                 num = 0;
                 i = 0;
                 result = 0;
@@ -987,7 +992,7 @@ void string_to_float_dill(
                 continue;
             }
 
-            num = (float)(str[index] - '0') * pow(10, i);
+            num = (double)(str[index] - '0') * pow(10, i);
             result = result + num;
             i++;
             index--;
@@ -1099,6 +1104,7 @@ void string_to_float_dill(
 
     }
 
+    std::cout<<"drillx: "<<x_cord<<"Drilly: "<<y_cord<<std::endl;
 }
 
 
@@ -1784,7 +1790,7 @@ void DrawDrills_xln(
     std::cout<<"start drill file"<<std::endl;
     //defult 000.000
     coord_digits_x = 3;
-    coord_digits_y = 3;
+    coord_digits_y =3;
 
     /*
         return 0: decimal format
@@ -1881,6 +1887,7 @@ void DrawDrills_xln(
         }
     }
 
+    std::cout<<"LZ_TZ_dec: "<<LZ_TZ_dec<<std::endl;
     float DrillCenter_X=0;
     float DrillCenter_Y=0;
     i = 0;
@@ -2048,11 +2055,11 @@ ID2D1Bitmap* DrawGerberOnBitmab(
     pBitmap_= NULL;
     pBitmap_2= NULL;
     pBitmap_3= NULL;
-    pBitmap_4= NULL;
+    //pBitmap_4= NULL;
     pBitmap_flip= NULL;
     pBitmap_2_flip= NULL;
     pBitmap_3_flip= NULL;
-    pBitmap_4_flip= NULL;
+    //pBitmap_4_flip= NULL;
 
 
 
@@ -2171,12 +2178,21 @@ ID2D1Bitmap* DrawGerberOnBitmab(
         else if(str[i] == 'G' && str[i + 1] == '3' && str[i + 2] == '6' && str[i + 3] == '*')
         {
             start_contour =true;
+            while(str[i] != 'D' && str[i + 1] != '0' && str[i + 2] != '2')
+            {
+                i++;
+            }
+            string_to_float(str, i, coord_digits_x, coord_digits_y, current_x, current_y,scale, Shift_X, Shift_Y);
+            begin_polygon(current_x,current_y,pFactory_,pSink, m_pPathGeometry);
+            std::cout<<"G36 D02 "<<"current_x "<<current_x<<" current_y "<<current_y<<std::endl;
+            contour_x = current_x;
+            contour_y = current_y;
             //contour_x = current_x;
             //contour_y = current_y;
             i=i+3;
         }
         //G01*
-        else if(str[i] == 'G' && str[i + 1] == '0' && str[i + 2] == '1' && str[i + 3] == '*')
+        /*else if(str[i] == 'G' && str[i + 1] == '0' && str[i + 2] == '1' && str[i + 3] == '*')
         {
             if(start_contour == true)
             {
@@ -2189,7 +2205,7 @@ ID2D1Bitmap* DrawGerberOnBitmab(
             }
             i=i+3;
 
-        }
+        }*/
         //G37*
         else if(str[i] == 'G' && str[i + 1] == '3' && str[i + 2] == '7' && str[i + 3] == '*')
         {
@@ -2222,8 +2238,8 @@ ID2D1Bitmap* DrawGerberOnBitmab(
             {
                 //pWicRenderTarget_->DrawLine(D2D1::Point2F(current_x, current_y), D2D1::Point2F(shape_x, shape_y), pWicBrush ,1.0f);
                 std::cout<<"draw_line_polygon_1"<<std::endl;
-                std::cout<<"shape_x: "<<shape_x<<std::endl;
-                std::cout<<"shape_y: "<<shape_y<<std::endl;
+                //std::cout<<"shape_x: "<<shape_x<<std::endl;
+                //std::cout<<"shape_y: "<<shape_y<<std::endl;
                 //draw_line_polygon(shape_x,shape_y,pSink);
                 pSink->AddLine(D2D1::Point2F(shape_x, shape_y));
                 std::cout<<"draw_line_polygon_2"<<std::endl;
@@ -2680,9 +2696,20 @@ ID2D1Bitmap* DrawGerberOnBitmab(
             //contour_x = current_x;
             //contour_y = current_y;
             i=i+3;
+            while(str[i] != 'D' && str[i + 1] != '0' && str[i + 2] != '2')
+            {
+                i++;
+            }
+            string_to_float(str, i, coord_digits_x, coord_digits_y, current_x, current_y,scale, Shift_X, Shift_Y);
+            begin_polygon(current_x,current_y,pFactory_,pSink, m_pPathGeometry);
+            std::cout<<"G36 D02 "<<"current_x "<<current_x<<" current_y "<<current_y<<std::endl;
+            contour_x = current_x;
+            contour_y = current_y;
+            //i = i + 3;
+
         }
         //G01*
-        else if(str[i] == 'G' && str[i + 1] == '0' && str[i + 2] == '1' && str[i + 3] == '*')
+        /*else if(str[i] == 'G' && str[i + 1] == '0' && str[i + 2] == '1' && str[i + 3] == '*')
         {
             if(start_contour == true)
             {
@@ -2692,10 +2719,11 @@ ID2D1Bitmap* DrawGerberOnBitmab(
                 contour_x = current_x;
                 contour_y = current_y;
                 //start_contour = false;
+
             }
             i=i+3;
 
-        }
+        }*/
         //G37*
         else if(str[i] == 'G' && str[i + 1] == '3' && str[i + 2] == '7' && str[i + 3] == '*')
         {
@@ -2729,8 +2757,8 @@ ID2D1Bitmap* DrawGerberOnBitmab(
             {
                 //pWicRenderTarget_->DrawLine(D2D1::Point2F(current_x, current_y), D2D1::Point2F(shape_x, shape_y), pWicBrush ,1.0f);
                 std::cout<<"draw_line_polygon_1"<<std::endl;
-                std::cout<<"shape_x: "<<shape_x<<std::endl;
-                std::cout<<"shape_y: "<<shape_y<<std::endl;
+                //std::cout<<"shape_x: "<<shape_x<<std::endl;
+                //std::cout<<"shape_y: "<<shape_y<<std::endl;
                 //draw_line_polygon(shape_x,shape_y,pSink);
                 pSink->AddLine(D2D1::Point2F(shape_x, shape_y));
                 std::cout<<"draw_line_polygon_2"<<std::endl;
@@ -3108,8 +3136,8 @@ void GetWidthHeightMMG(
     high_level_Z = MaxZ;
     low_level_Z = MinZ;
 
-    puiWidth = MaxX*scale;
-    puiHeight = MaxY*scale;
+    puiWidth = MaxX + 3;//3 for safty
+    puiHeight = MaxY+ 3;//3 for safty
 
 
 }
@@ -3120,7 +3148,8 @@ void DrawMMG(std::vector <CompressedCommand> commands, float scale)
     pBitmap_4 = NULL;
     pBitmap_4_flip = NULL;
     scale = 1.0/scale;
-    //scale = 1/scale;
+    //scale =10;
+    //scale = 1;
     std::cout<<"start MMG"<<std::endl;
 
     UINT width=0;
@@ -3136,7 +3165,6 @@ void DrawMMG(std::vector <CompressedCommand> commands, float scale)
     std::cout<<"height: "<<height<<std::endl;
     w_MMG = width;
     h_MMG = height;
-
     std::cout<<"GetWidthHeightMMG"<<std::endl;
     /* if (pBitmap_4 == NULL)
     {*/
@@ -3169,8 +3197,8 @@ void DrawMMG(std::vector <CompressedCommand> commands, float scale)
     float currentX=0;
     float currentY=0;
     float currentZ=0;
-    currentX = commands[0].x * scale + shift_x;
-    currentY = commands[0].y * scale + shift_y;
+    currentX = commands[0].x * scale + shift_x +1;//1 for safty
+    currentY = commands[0].y * scale + shift_y +1;//1 for safty
     currentZ = commands[0].z;
 
     for(int i =0; i<commands.size(); i++)
@@ -3179,19 +3207,19 @@ void DrawMMG(std::vector <CompressedCommand> commands, float scale)
         previousY = currentY;
         previousZ = currentZ;
 
-        currentX = commands[i].x * scale + shift_x;
-        currentY = commands[i].y * scale + shift_y;
+        currentX = commands[i].x * scale + shift_x +1 ;//1 for safty
+        currentY = commands[i].y * scale + shift_y +1 ;//1 for safty
         currentZ = commands[i].z;
         if(currentZ <= low_level_z)
         {
-            pWicRenderTarget_->DrawLine(D2D1::Point2F(previousX, /*h_MMG-*/previousY), D2D1::Point2F(currentX, /*h_MMG-*/currentY), pWicBrush, 1.7);
+            pWicRenderTarget_->DrawLine(D2D1::Point2F(previousX, /*h_MMG-*/previousY), D2D1::Point2F(currentX, /*h_MMG-*/currentY), pWicBrush, 1.0);
             //std::cout<<"line"<<std::endl;
         }
         else
         {
             D2D1_COLOR_F color = D2D1::ColorF(0,0,255);
             pWicBrush->SetColor(color);
-            pWicRenderTarget_->DrawLine(D2D1::Point2F(previousX, /*h_MMG-*/previousY), D2D1::Point2F(currentX, /*h_MMG-*/currentY), pWicBrush, 1.7);
+            pWicRenderTarget_->DrawLine(D2D1::Point2F(previousX, /*h_MMG-*/previousY), D2D1::Point2F(currentX, /*h_MMG-*/currentY), pWicBrush, 1.0);
             //std::cout<<"air"<<std::endl;
             color = D2D1::ColorF(255,0,0);
             pWicBrush->SetColor(color);
@@ -3224,7 +3252,7 @@ void DrawMMG(std::vector <CompressedCommand> commands, float scale)
             UINT GG = 0;
             UINT RR = 0;
             UINT A = 0;
-            get_pixel(pv_4_flip, cb_stride, j, i, BB, GG, RR, A);
+            get_pixel(pv_4, cb_stride, j, i, BB, GG, RR, A);
             set_pixel(pvTemp_4, cb_stride, j, height-i-1, BB, GG, RR,A);
         }
     }
@@ -3233,7 +3261,7 @@ void DrawMMG(std::vector <CompressedCommand> commands, float scale)
     {
       //  if(*(pvTemp_4 + k) != 255)
            // std::cout<<"not white"<<std::endl;
-        *(pv_4_flip + k) = *(pvTemp_4 + k);
+        *(pv_4 + k) = *(pvTemp_4 + k);
     }
 
     pBitmap_main = pBitmap_4;

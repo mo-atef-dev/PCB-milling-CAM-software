@@ -711,6 +711,7 @@ int App_MMGtoCMDs(const std::string& mmg, std::vector<OutCommand>& cmds, std::ve
 {
     //int stepPermm = round(1.0/mmPerStep);
 
+    printf("Number of trace commands: %d\n", pixCmds.size());
     vector<CompressedCommand> cmpCmds(pixCmds.size());
     for(int i = 0; i < pixCmds.size(); i++)
     {
@@ -718,7 +719,7 @@ int App_MMGtoCMDs(const std::string& mmg, std::vector<OutCommand>& cmds, std::ve
         cmpCmds[i].y = pixCmds[i].GetY()*pixTomm*-1;
         cmpCmds[i].z = pixCmds[i].GetZ()*pixTomm;
     }
-    SetMaxSpeed(7);
+    printf("Number of compressed commands: %d\n", cmpCmds.size());
     cmds = step_mov(cmpCmds, mmPerStep, mmPerStep, mmPerStep);
     return 1;
 }
@@ -726,7 +727,7 @@ int App_MMGtoCMDs(const std::string& mmg, std::vector<OutCommand>& cmds, std::ve
 int App_MMGtoCMDs(const std::string& mmg, std::vector<OutCommand>& cmds, std::vector<CompressedCommand>& cmpCmds, const float mmPerStep)
 {
     //int stepPermm = round(1.0/mmPerStep);
-    SetMaxSpeed(7);
+    printf("Number of compressed commands: %d\n", cmpCmds.size());
     cmds = step_mov(cmpCmds, mmPerStep, mmPerStep, mmPerStep);
     return 1;
 }
@@ -736,6 +737,7 @@ int App_SaveCMDs(const LPWSTR swzPath,  const std::vector<OutCommand>& cmds, HWN
     // Convert the vector to a buffer
     int l = cmds.size();
     __int8* outBuff = new __int8[l*4];
+    printf("Number of divided commands to be written: %d\n", cmds.size());
     for(int i = 0; i < l*4; i += 4)
     {
         outBuff[i] = cmds[i/4].x;
