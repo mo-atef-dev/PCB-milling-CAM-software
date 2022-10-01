@@ -23,6 +23,7 @@
 
 #include"cmds.h"
 
+extern WCHAR szGerberPath[];
 
 extern ID2D1Factory* pFactory_ /*= NULL*/;
 extern ID2D1RenderTarget* pWicRenderTarget_ /*= NULL*/;
@@ -68,17 +69,23 @@ private:
     UINT height;
 public:
     /// <summary>
-    /// Constructor that initialize the image by its total size and its width
+    /// Constructor that initialize the bitmap
     /// </summary>
     /// <param name="pv">Pointer to array of bytes that has the pixels</param>
-    /// <param name="cbBufferSize">total size of the image in bytes</param>
-    /// <param name="cbStride">the width of the image</param>
+    /// <param name="cbBufferSize">Total size of the image in bytes</param>
+    /// <param name="cbStride">the width of the image  in bytes</param>
     MyBitmap()
     {
         pv = NULL;
         cb_BufferSize = 0;
         cb_Stride = 0;
     }
+    /// <summary>
+    /// Constructor that initialize the image by array of bytes and the size and the stride
+    /// </summary>
+    /// <param name="ArrayBytes">: The array of bytes that have the pexil</param>
+    /// <param name="cbBufferSize">: Total size of the image in bytes</param>
+    /// <param name="cbStride">: The width of the image in bytes</param>
     MyBitmap(BYTE* ArrayBytes, UINT cbBufferSize, UINT cbStride)
     {
         pv = new BYTE[cbBufferSize];
@@ -92,6 +99,14 @@ public:
         cb_Stride = cbStride;
 
     }
+    /// <summary>
+    ///  Constructor that initialize the image by array of bytes and the size and the stride
+    /// </summary>
+    /// <param name="ArrayBytes">: The array of bytes that have the pexil</param>
+    /// <param name="cbBufferSize">: Total size of the image in bytes</param>
+    /// <param name="cbStride">: The width of the image in bytes</param>
+    /// <param name="w"><: The width of the bitmap/param>
+    /// <param name="h">: The height of the bitmap</param>
     MyBitmap(BYTE* ArrayBytes, UINT cbBufferSize, UINT cbStride,UINT w,UINT h)
     {
         pv = new BYTE[cbBufferSize];
@@ -107,7 +122,14 @@ public:
         height = h;
 
     }
-    //set all specifications of the bitmap
+    /// <summary>
+    /// Set specifications of the bitmap if the object made without setting the specifications
+    /// </summary>
+    /// <param name="ArrayBytes">: The array of bytes that have the pexil</param>
+    /// <param name="cbBufferSize">: Total size of the image in bytes</param>
+    /// <param name="cbStride">: The width of the image in bytes</param>
+    /// <param name="w"><: The width of the bitmap/param>
+    /// <param name="h">: The height of the bitmap</param>
     void SetSpecifications(BYTE* ArrayBytes, UINT cbBufferSize, UINT cbStride, UINT w, UINT h)
     {
         pv = new BYTE[cbBufferSize];
@@ -122,27 +144,42 @@ public:
         width = w;
         height = h;
     }
-    //set size of the bitmap
+    /// <summary>
+    /// Set the size of the bitmap
+    /// </summary>
+    /// <param name="cbBufferSize">: Total size of the image in bytes</param>
     void SetSize(UINT cbBufferSize)
     {
         cb_BufferSize = cbBufferSize;
     }
-    //Set stride of the bitmap
+    /// <summary>
+    /// Set the stride of the bitmap
+    /// </summary>
+    /// <param name="cbStride">: The width of the image in bytes</param>
     void SetStride(UINT cbStride)
     {
         cb_Stride = cbStride;
     }
-    //get the width of the BitmapObject
+    /// <summary>
+    /// Get the width of the BitmapObject
+    /// </summary>
+    /// <returns>The width of the bitmap</returns>
     UINT GetWidth()
     {
         return width;
     }
-    //get the width of the BitmapObject
+    /// <summary>
+    /// Get the width of the BitmapObject
+    /// </summary>
+    /// <returns></returns>
     UINT GetHeight()
     {
         return height;
     }
-    //Set pixel array using pointer to te first byte(array of bytes)
+    /// <summary>
+    /// Set pixel array using pointer to te first byte(array of bytes)
+    /// </summary>
+    /// <param name="ArrayBytes">: The array of bytes that have the pexil</param>
     void SetpixelArray(BYTE* ArrayBytes)
     {
         pv = new BYTE[cb_BufferSize];
@@ -274,7 +311,7 @@ public:
 };
 
 
-//object for tracing algorithm
+//Global object for tracing algorithm
 extern MyBitmap bitmapObject /*= MyBitmap()*/;
 
 
@@ -417,7 +454,11 @@ public:
 
 };
 
-
+/// <summary>
+/// Test the format of the drills file it would be(TZ or LZ or Dec)
+/// </summary>
+/// <param name="str">: String represented the drill files</param>
+/// <returns>return 0:if decimal format, return 1 if LZ format, return 2 if TZ format</returns>
 int testFormatDrills(char* str);
 
 /// <summary>
@@ -650,7 +691,7 @@ void DrawDrills_xln(
 /// <summary>
 /// Scale and shift the drawing
 /// </summary>
-/// <param name="handeller_to_window">: handeler to a window that refer to the window that have the drawing</param>
+/// <param name="handeller_to_window">: Handeler to a window that refer to the window that have the drawing</param>
 /// <param name="pRT">: Pointer to rendertarget that will be scalling</param>
 /// <param name="scale_factor">: the factor that will be use to scall the draing</param>
 /// <param name="offset_x">: The value of the drawing shifting in x axis</param>
@@ -666,13 +707,21 @@ void scale_translation(
 /// <summary>
 /// Repaint the image when resizing
 /// </summary>
-/// <param name="handeller_to_window"></param>
+/// <param name="handeller_to_window">: Handeler to a window that refer to the window that have the drawing</param>
 /// <param name="pRT">: Pointer to rendertarget that will be scalling</param>
 /// <param name="D2DpBitmap">: Pointer to D2DpBitmap that will resize</param>
 void Resize(HWND handeller_to_window,ID2D1HwndRenderTarget* pRT, ID2D1Bitmap* D2DpBitmap);
 
 
-//Mearge: scale_translation and Resize
+/// <summary>
+/// Mearge: scale_translation() and Resize()
+/// </summary>
+/// <param name="handeller_to_window">: Handeler to a window that refer to the window that have the drawing</param>
+/// <param name="pRT">: Pointer to rendertarget that will be scalling</param>
+/// <param name="scale_factor">: the factor that will be use to scall the draing</param>
+/// <param name="offset_x">: The value of the drawing shifting in x axis</param>
+/// <param name="offset_y">: The value of the drawing shifting in x axis</param>
+/// <param name="D2DpBitmap">: pointer to D2DpBitmap that will resize</param>
 void scaleResize(
     HWND handeller_to_window,
     ID2D1HwndRenderTarget* pRT,
@@ -682,7 +731,13 @@ void scaleResize(
     ID2D1Bitmap* D2DpBitmap
 );
 
-
+/// <summary>
+/// Draw borders before drawing the gerber files
+/// </summary>
+/// <param name="pWicRenderTarget">: Pointer to render target that will draw on wicBitmap</param>
+/// <param name="pWicBrush">: pointer to the brush that has the color</param>
+/// <param name="puiWidth">: Width of the bitmap</param>
+/// <param name="puiHeight">: height of the bitmap</param>
 void DrawBorders(
     ID2D1RenderTarget* pWicRenderTarget,
     ID2D1SolidColorBrush* pWicBrush,
@@ -715,16 +770,34 @@ ID2D1Bitmap* DrawGerberOnBitmab(
 );
 
 
-void DrawLineOnWindow(float xStart, float yStart, float xEnd, float yEnd, float red, float green, float blue, float width);
+///without Maxcupper
+ID2D1Bitmap* DrawGerberOnBitmabWithoutMaxCupper(
+    HWND handeller_to_window,
+    char* str,
+    char* profileStr,
+    char* DrillsStr,
+    float scale ,//each pixel have scale mm
+    /*ID2D1Factory* pFactory_,
+    ID2D1RenderTarget* pWicRenderTarget_,
+    IWICImagingFactory* wicFactory_,
+    IWICBitmap* pBitmap_,
+    ID2D1SolidColorBrush* pWicBrush,*/
+    bool xln_grb /*= true*/
+    );
 
-void DrawCirculeOnWindow(float xStart, float yStart, float radius, float red, float green, float blue);
-
-void BeginDrawOnWindow();
-
-void EndDrawOnWindow();
 
 
-
+/// <summary>
+/// Get the width and the height of the MMG file(the width and the height of circuit) and the shift x and y to draw the file in the first quarter
+/// </summary>
+/// <param name="commands">: Vector has the commands of MMG to get the maximum number to initialize the width and the height</param>
+/// <param name="puiWidth">: Retern by referance(The output):width</param>
+/// <param name="puiHeight">: Retern by referance(The output):heighth</param>
+/// <param name="Shift_X">: Retern by referance(The output): The value of x axis that shift all the gerber values to the first quarter</param>
+/// <param name="Shift_Y">: Retern by referance(The output): The value of y axis that shift all the gerber values to the first quarter</param>
+/// <param name="high_level_Z">: Retern by referance(The output): The large level of Z</param>
+/// <param name="low_level_Z">: Retern by referance(The output): The low level of Z</param>
+/// <param name="scale">: The scale that represent the mmPerpexil</param>
 void GetWidthHeightMMG(
     std::vector <CompressedCommand> commands,
     UINT& puiWidth, //output
@@ -735,11 +808,23 @@ void GetWidthHeightMMG(
     float& low_level_Z,
     float scale);
 
-
+/// <summary>
+/// Draw MMG commands on wicBitmap
+/// </summary>
+/// <param name="commands">: Vector has the commands of MMG to draw</param>
+/// <param name="scale">: The scale that represent the mmPerpexil</param>
 void DrawMMG(std::vector <CompressedCommand> commands, float scale = 0.1);
 
-
+//Not test and not used
 void DrawAceleration(std::vector <OutCommand> commands);
 
+//tested but not used
+void DrawLineOnWindow(float xStart, float yStart, float xEnd, float yEnd, float red, float green, float blue, float width);
+//tested but not used
+void DrawCirculeOnWindow(float xStart, float yStart, float radius, float red, float green, float blue);
+//tested but not used
+void BeginDrawOnWindow();
+//tested but not used
+void EndDrawOnWindow();
 
 #endif // MAXCOPPER_H_INCLUDED

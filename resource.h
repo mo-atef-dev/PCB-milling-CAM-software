@@ -32,3 +32,6 @@
 #define ID_HELP                                 40011
 #define ID_VTPTH                                40012
 #define ID_VFLIP                                40013
+#define IDC_EDIT_ZHOLE                          40014
+#define ID_ISO                                  40015
+

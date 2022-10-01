@@ -72,6 +72,7 @@ const int drawMargin = 10;
 
 /* Program constants */
 const float mmPerStep = 0.02;
+const float mmPerStepZ = 0.004;
 const float pixTomm = 0.1;
 const int stepPermm = 50;
 
@@ -177,12 +178,70 @@ LRESULT CALLBACK WindowProcedure (HWND hwnd, UINT message, WPARAM wParam, LPARAM
 
     switch (message)                  /* handle the messages */
     {
-        case WM_GETMINMAXINFO:
+        char xstr[20];
+        char ystr[20];
+        char zoomstr[20];
+
+        case WM_CHAR:
+        {
+            char asciiCHAR;
+            asciiCHAR = wParam;
+            if(asciiCHAR == 'w')
             {
-                LPMINMAXINFO lpMMI = (LPMINMAXINFO)lParam;
-                lpMMI->ptMinTrackSize.x = 720;
-                lpMMI->ptMinTrackSize.y = 720;
+                SendMessage(drawWnd, WMU_DOWN, NULL, NULL);
             }
+            else if(asciiCHAR == 's')
+            {
+                SendMessage(drawWnd, WMU_UP, NULL, NULL);
+            }
+            else if(asciiCHAR == 'a')
+            {
+                SendMessage(drawWnd, WMU_LEFT, NULL, NULL);
+            }
+            else if(asciiCHAR == 'd')
+            {
+                SendMessage(drawWnd, WMU_RIGHT, NULL, NULL);
+            }
+            else if(asciiCHAR == '+')
+            {
+                SendMessage(drawWnd, WMU_ZOOMIN, NULL, NULL);
+            }
+            else if(asciiCHAR == '-')
+            {
+                SendMessage(drawWnd, WMU_ZOOMOUT, NULL, NULL);
+            }
+        }
+            break;
+        case WM_KEYDOWN:
+            switch(wParam)
+            {
+
+            case VK_DOWN:
+                SendMessage(drawWnd, WMU_ZOOMOUT, NULL, NULL);
+                break;
+            case VK_UP:
+                SendMessage(drawWnd, WMU_ZOOMIN, NULL, NULL);
+                break;
+            case VK_NUMPAD8:
+                SendMessage(drawWnd, WMU_DOWN, NULL, NULL);
+                break;
+            case VK_NUMPAD2:
+                SendMessage(drawWnd, WMU_UP, NULL, NULL);
+                break;
+            case VK_NUMPAD4:
+                SendMessage(drawWnd, WMU_LEFT, NULL, NULL);
+                break;
+            case VK_NUMPAD6:
+                SendMessage(drawWnd, WMU_RIGHT, NULL, NULL);
+                break;
+            }
+        break;
+        case WM_GETMINMAXINFO:
+        {
+            LPMINMAXINFO lpMMI = (LPMINMAXINFO)lParam;
+            lpMMI->ptMinTrackSize.x = 720;
+            lpMMI->ptMinTrackSize.y = 720;
+        }
             break;
         case WM_CREATE:
             menu = GetMenu(hwnd);
@@ -246,18 +305,27 @@ LRESULT CALLBACK WindowProcedure (HWND hwnd, UINT message, WPARAM wParam, LPARAM
                 break;
             case ID_VCPR:
                 DrawBitmapOnWindow(drawWnd,pFactory_, pBitmap_2,wicFactory_);
+                //SendMessage(drawWnd,WM_PAINT,NULL,NULL);
+                InvalidateRect(drawWnd,NULL,FALSE);
                 break;
             case ID_VMAX:
                 DrawBitmapOnWindow(drawWnd,pFactory_, pBitmap_,wicFactory_);
+                //SendMessage(drawWnd,WM_PAINT,NULL,NULL);
+                InvalidateRect(drawWnd,NULL,FALSE);
                 break;
             case ID_VBOTH:
                 DrawBitmapOnWindow(drawWnd,pFactory_, pBitmap_3,wicFactory_);
+                SendMessage(drawWnd,WM_PAINT,NULL,NULL);
                 break;
             case ID_VTPTH:
                 DrawBitmapOnWindow(drawWnd,pFactory_, pBitmap_4,wicFactory_);
+                //SendMessage(drawWnd,WM_PAINT,NULL,NULL);
+                InvalidateRect(drawWnd,NULL,FALSE);
                 break;
             case ID_VFLIP:
                 DrawBitmapOnWindow(drawWnd,pFactory_, pBitmap_main,wicFactory_, true);
+                //SendMessage(drawWnd,WM_PAINT,NULL,NULL);
+                InvalidateRect(drawWnd,NULL,FALSE);
                 break;
             case ID_DOWNLOAD:
                 {
@@ -372,7 +440,7 @@ LRESULT CALLBACK WindowProcedure (HWND hwnd, UINT message, WPARAM wParam, LPARAM
 
                     // SetMaxSpeed function is necessary before using the step_mov function inside App_MMGtoCMDs
                     SetMaxSpeed(result.maxSpd);
-                    App_MMGtoCMDs(mmgString, outCmds, cmpCmds, mmPerStep);
+                    App_MMGtoCMDs(mmgString, outCmds, cmpCmds, mmPerStep, mmPerStepZ);
 
                     // Add terminating command
                     outCmds.push_back({0, 0, 0, 0});
@@ -455,7 +523,7 @@ LRESULT CALLBACK WindowProcedure (HWND hwnd, UINT message, WPARAM wParam, LPARAM
 
                     // SetMaxSpeed function is necessary before using the step_mov function inside App_MMGtoCMDs
                     SetMaxSpeed(result.maxSpd);
-                    App_MMGtoCMDs(mmgString, outCmds, traceCmds, mmPerStep, result.pixTomm);
+                    App_MMGtoCMDs(mmgString, outCmds, traceCmds, mmPerStep, result.pixTomm, mmPerStepZ);
 
                     // Add terminating command
                     outCmds.push_back({0, 0, 0, 0});
@@ -520,7 +588,7 @@ LRESULT CALLBACK WindowProcedure (HWND hwnd, UINT message, WPARAM wParam, LPARAM
                                 }
                             }
                         }
-                        vector<Command> traceCmds = TracePixelMatrix(&pm, result.zTop, result.zBottom);
+                        vector<Command> traceCmds = TracePixelMatrix(&pm, result.zTop, result.zBottom, result.zHole);
                         traceCmds = SimplifyCommandsXY(traceCmds);
                         mmgString = CommandsString(traceCmds, result.pixTomm, true);
 
@@ -564,7 +632,120 @@ LRESULT CALLBACK WindowProcedure (HWND hwnd, UINT message, WPARAM wParam, LPARAM
 
                         // SetMaxSpeed function is necessary before using the step_mov function inside App_MMGtoCMDs
                         SetMaxSpeed(result.maxSpd);
-                        App_MMGtoCMDs(mmgString, outCmds, traceCmds, mmPerStep, result.pixTomm);
+                        App_MMGtoCMDs(mmgString, outCmds, traceCmds, mmPerStep, result.pixTomm, mmPerStepZ);
+
+                        // Add terminating command
+                        outCmds.push_back({0, 0, 0, 0});
+
+                        /// Create a file to store the resulting compressed commands
+                        // Replace extension to save the binary file
+                        res = PathRenameExtensionW(szOutPath, L".bin");
+                        if(!res)
+                        {
+                            MessageBox(hwnd, "Error in saving file, file not saved", "Error", MB_OK | MB_ICONERROR);
+                            return 0;
+                        }
+
+                        App_SaveCMDs(szOutPath, outCmds, hwnd);
+                    }
+                    else
+                    {
+                        MessageBox(hwnd, "Please open a Gerber copper layer file first", "Error", MB_OK | MB_ICONERROR);
+                    }
+                    MessageBox(hwnd, "Successfully created output files bin, mmg, and bmp", "Success", MB_OK | MB_ICONINFORMATION);
+                }
+                break;
+            case ID_ISO:
+                {
+                    if(!szDrillBuffer)
+                    {
+                        if(MessageBox(hwnd, "No drill file is opened, do you want to continue?", "Warning", MB_YESNO | MB_ICONEXCLAMATION) != IDYES)
+                        {
+                            return 0;
+                        }
+                    }
+
+                    if(!szBorderBuffer)
+                    {
+                        MessageBox(hwnd, "Please open a Gerber border layer file first", "Error", MB_OK | MB_ICONERROR);
+                        return 0;
+                    }
+
+                    if(szGerberBuffer)
+                    {
+                        WCHAR filename[MAX_FILENAME];
+                        DlgStrct_MaxCopper result;
+
+                        // Get filename
+                        App_GetSaveFileName(filename, layerWnd, MAX_FILENAME);
+
+                        if(App_GetTraceInputs(result, hwnd) == 0)
+                        {
+                            return 0;
+                        }
+
+                        MessageBox(hwnd, "Generation of Max-Copper will start. Press OK to continue", "Info", MB_OK | MB_ICONINFORMATION);
+
+                        // This part should be called in a different thread
+                        DrawGerberOnBitmabWithoutMaxCupper(hwnd, szGerberBuffer, szBorderBuffer, szDrillBuffer, result.pixTomm, true);
+                        // end
+
+                        PixelMatrix pm(bitmapObject.GetWidth(), bitmapObject.GetHeight());
+                        for(int i = 0; i < bitmapObject.GetWidth(); i++)
+                        {
+                            for(int j = 0; j < bitmapObject.GetHeight(); j++)
+                            {
+                                if(bitmapObject.isBlack(i, j))
+                                {
+                                    pm.SetPixelState(i, j, ISOLATE);
+                                }
+                            }
+                        }
+                        vector<Command> traceCmds = TracePixelMatrix(&pm, result.zTop, result.zBottom, result.zHole);
+                        traceCmds = SimplifyCommandsXY(traceCmds);
+                        mmgString = CommandsString(traceCmds, result.pixTomm, true);
+
+                        // Set the output path to the directory of the copper layer source
+                        BOOL res;
+                        wcscpy(szOutPath, szGerberPath);
+                        res = PathRemoveFileSpecW(szOutPath);
+                        if(!res)
+                        {
+                            MessageBox(hwnd, "Error in saving mmg file, file not saved", "Error", MB_OK | MB_ICONERROR);
+                            return 0;
+                        }
+                        res = PathAppendW(szOutPath, filename);
+                        res = PathAddExtensionW(szOutPath, L".mmg");
+                        if(!res)
+                        {
+                            MessageBox(hwnd, "Error in saving mmg file, file not saved", "Error", MB_OK | MB_ICONERROR);
+                            return 0;
+                        }
+
+                        /// Create a file to store the resulting mmg commands
+                        App_SaveMMG(szOutPath, mmgString);
+
+                        // Draw the mmg
+                        DrawMMG(MMG_PARSE(mmgString.c_str()), pixTomm);
+
+                        // Replace extension to save a bitmap
+                        res = PathRenameExtensionW(szOutPath, L".bmp");
+                        if(!res)
+                        {
+                            MessageBox(hwnd, "Error in saving image, file not saved", "Error", MB_OK | MB_ICONERROR);
+                            return 0;
+                        }
+
+                        /// Draw the output image
+                        App_SaveImageFromPixCmds(szOutPath, traceCmds, bitmapObject.GetWidth(), bitmapObject.GetHeight());
+                        printf("Finished mmg file creation\n");
+
+                        /// Use the resulting mmg commands to generate the compressed 4 byte commands
+                        vector<OutCommand> outCmds;
+
+                        // SetMaxSpeed function is necessary before using the step_mov function inside App_MMGtoCMDs
+                        SetMaxSpeed(result.maxSpd);
+                        App_MMGtoCMDs(mmgString, outCmds, traceCmds, mmPerStep, result.pixTomm, mmPerStepZ);
 
                         // Add terminating command
                         outCmds.push_back({0, 0, 0, 0});

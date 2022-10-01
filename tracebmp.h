@@ -97,7 +97,7 @@ public:
  * \return vector<Command> The resulting command array.
  *
  */
-vector<Command> TracePixelMatrix(PixelMatrix* matrix, int zTop = 100, int zBottom = -10);
+vector<Command> TracePixelMatrix(PixelMatrix* matrix, int zTop, int zBottom, int zHole);
 
 /** \brief This function returns a command array that traces a path of connected pixels
  * starting at the pixel identified by the input.
@@ -108,8 +108,14 @@ vector<Command> TracePixelMatrix(PixelMatrix* matrix, int zTop = 100, int zBotto
  * \return vector<Command> The resulting command array.
  *
  */
-vector<Command> TracePixel(PixelMatrix* matrix, int x, int y, int zTop = 100, int zBottom = -10);
+vector<Command> TracePixel(PixelMatrix* matrix, int x, int y, int zTop, int zBottom);
 
+/** \brief Groups any commands that are sequential in the same direction to a single command.
+ *
+ * \param commands vector<Command> The input vector of commands to be simplified.
+ * \return vector<Command> Simplified version of the input command vector
+ *
+ */
 vector<Command> SimplifyCommandsXY(vector<Command> commands);
 
 /** \brief Traces a pixel path to one of its ends and returns end coordinates.
@@ -136,9 +142,31 @@ int TraceStart(PixelMatrix* matrix, int x, int y, int* xx, int* yy);
  */
 Direction InitDirection(const PixelMatrix* matrix, int x, int y);
 
+/** \brief Scans the pixels around the input in a growing fashion, and returns one of the nearest pixels.
+ *
+ * \param matrix PixelMatrix* The pixel matrix that includes the pixels.
+ * \param x int The x coordinate of the starting pixel.
+ * \param y int The y coordinate of the starting pixel.
+ * \param xx int* Pointer to the integer to store the output x coordinate.
+ * \param yy int* Pointer to the integer to store the output y coordinate.
+ * \return int 1 if successful and 0 if error
+ *
+ */
 int RadialScan(PixelMatrix* matrix, int x, int y, int* xx, int* yy);
 
+/** \brief Scans the surrounding the input pixel and returns the coordinates of any checked pixel around it.
+ *
+ * \param matrix PixelMatrix*
+ * \param x int The x coordinate of the input pixel.
+ * \param y int The y coordinate of the starting pixel.
+ * \param xx int* Pointer to the integer to store the output x coordinate.
+ * \param yy int* Pointer to the integer to store the output y coordinate.
+ * \return int 0 if successful and 1 if error
+ *
+ */
 int Clearance(PixelMatrix* matrix, int x, int y, int* xx, int* yy);
+
+bool IsHoleCheck(PixelMatrix* matrix, int x, int y);
 
 string CommandsString(vector<Command> commands, float scale = 0.1f, bool negativeY = false);
 

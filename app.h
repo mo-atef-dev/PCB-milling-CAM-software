@@ -7,6 +7,7 @@
 #include <stdio.h>
 #include <tchar.h>
 #include <string>
+#include <cmath>
 #include "tracebmp.h"
 #include "tracecheck.h"
 #include "resource.h"
@@ -26,10 +27,17 @@ using namespace std;
 /// This section is for user defined Windows messages
 #define WMU_UPDATE WM_USER+100
 #define WMU_GETOUTNAME WM_USER+101
+#define WMU_ZOOMIN WM_USER+102
+#define WMU_ZOOMOUT WM_USER+103
+#define WMU_UP WM_USER+104
+#define WMU_LEFT WM_USER+105
+#define WMU_RIGHT WM_USER+106
+#define WMU_DOWN WM_USER+107
 
 /// Software constants
 #define ZOOMIN_FAC 1.1
 #define ZOOMOUT_FAC 0.9
+#define KEY_PAN_DELTA 5
 #define MAX_FILENAME 20
 
 /// Global variables for components
@@ -60,6 +68,12 @@ extern const int layersItemsSpacing;
 
 extern const float pixTomm;
 
+//////////////////
+extern FLOAT img_scale;
+extern FLOAT origin_x;
+extern FLOAT origin_y;
+////
+
 /// Proc structures
 /// These structures represent data communication between the proc functions and the caller
 struct DlgStrct_MaxCopper
@@ -69,6 +83,7 @@ struct DlgStrct_MaxCopper
     char maxSpd;
     int zTop;
     int zBottom;
+    int zHole;
 };
 
 /// Global functions
@@ -91,8 +106,8 @@ int App_GetSaveFileName(LPWSTR name, HWND hwndEditParent, DWORD buffSize);
 int App_BitmaptoMMG(bitmap_image* pTraceImage, std::string& mmg, const DlgStrct_MaxCopper& result, std::vector<Command>& traceCmds, bool simplify = true);
 int App_SaveMMG(const LPWSTR swzPath, const std::string& mmg);
 int App_SaveImageFromPixCmds(const LPWSTR swzPath, const std::vector<Command>& pixCmds, unsigned int width, unsigned int height);
-int App_MMGtoCMDs(const std::string& mmg, std::vector<OutCommand>& cmds, std::vector<Command>& pixCmds, const float mmPerStep, const float pixTomm);
-int App_MMGtoCMDs(const std::string& mmg, std::vector<OutCommand>& cmds, std::vector<CompressedCommand>& cmpCmds, const float mmPerStep);
+int App_MMGtoCMDs(const std::string& mmg, std::vector<OutCommand>& cmds, std::vector<Command>& pixCmds, const float mmPerStep, const float pixTomm, const float mmPerStepZ);
+int App_MMGtoCMDs(const std::string& mmg, std::vector<OutCommand>& cmds, std::vector<CompressedCommand>& cmpCmds, const float mmPerStep, const float mmPerStepZ);
 int App_SaveCMDs(const LPWSTR swzPath,  const std::vector<OutCommand>& cmds, HWND hwndParent);
 
 /// Proc functions

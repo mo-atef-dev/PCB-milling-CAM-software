@@ -8,7 +8,7 @@
 #define USB_ENDPOINT_OUT	(LIBUSB_ENDPOINT_OUT | 0x01)    /* endpoint out address 			 */
 #define USB_TIMEOUT	         0                              /* Connection timeout (in ms) 		 */
 
-#include <libusb-1.0/libusb.h>
+#include <libusb.h>
 #include <stdio.h>
 
 /*

@@ -83,7 +83,7 @@ PixelMatrix::~PixelMatrix()
     delete[] matrix;
 }
 
-vector<Command> TracePixelMatrix(PixelMatrix* matrix, int zTop, int zBottom)
+vector<Command> TracePixelMatrix(PixelMatrix* matrix, int zTop, int zBottom, int zHole)
 {
     vector<Command> commands;
 
@@ -112,6 +112,16 @@ vector<Command> TracePixelMatrix(PixelMatrix* matrix, int zTop, int zBottom)
             cout << "Error in TraceStart function with code: " << result << endl;
         }
         #endif
+
+        // If the found pixel is a single pixel surrounded only by copper pixels, then this is a drill pixel
+        if(IsHoleCheck(matrix, tempX, tempY))
+        {
+            commands.push_back(Command(MOVE, tempX, tempY, zTop));
+            commands.push_back(Command(LINE, tempX, tempY, zHole));
+            commands.push_back(Command(LINE, tempX, tempY, zTop));
+            matrix->SetPixelState(tempX, tempY, CHECKED);
+            continue;
+        }
 
         // If the current pixel is connected to adjacent checked pixels, start at a checked pixel to make sure the isolation is correct
         // In other words, call the clearance function
@@ -421,6 +431,66 @@ int Clearance(PixelMatrix* matrix, int x, int y, int* xx, int* yy)
     (*yy) = y;
 
     return 0;
+}
+
+bool IsHoleCheck(PixelMatrix* matrix, int x, int y)
+{
+    int dx = 1;
+    int dy = 0;
+
+
+    // This section basically checks the 8 surrounding pixels in a clockwise fashion and
+    // returns the direction of the first detected correct path.
+    // TO DO: Replace this section with a loop algorithm to make the code more compact.
+    if(matrix->GetPixelState(x+dx, y+dy) != COPPER)
+    {
+        return false;
+    }
+
+    dx = 1; dy = -1;
+    if(matrix->GetPixelState(x+dx, y+dy) != COPPER)
+    {
+        return false;
+    }
+
+    dx = 0; dy = -1;
+    if(matrix->GetPixelState(x+dx, y+dy) != COPPER)
+    {
+        return false;
+    }
+
+    dx = -1; dy = -1;
+    if(matrix->GetPixelState(x+dx, y+dy) != COPPER)
+    {
+        return false;
+    }
+
+    dx = -1; dy = 0;
+    if(matrix->GetPixelState(x+dx, y+dy) != COPPER)
+    {
+        return false;
+    }
+
+    dx = -1; dy = 1;
+    if(matrix->GetPixelState(x+dx, y+dy) != COPPER)
+    {
+        return false;
+    }
+
+    dx = 0; dy = 1;
+    if(matrix->GetPixelState(x+dx, y+dy) != COPPER)
+    {
+        return false;
+    }
+
+    dx = 1; dy = 1;
+    if(matrix->GetPixelState(x+dx, y+dy) != COPPER)
+    {
+        return false;
+    }
+
+    // If there are no surrounding pixels
+    return true;
 }
 
 vector<Command> TracePixel(PixelMatrix* matrix, int x, int y, int zTop, int zBottom)

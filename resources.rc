@@ -20,7 +20,7 @@ RSRC_MENU MENU
     {
         MENUITEM "&Open Gerber Copper File", ID_OPEN
         MENUITEM "Open Gerber Drill File", ID_OPENDRILL
-        MENUITEM "Open Gerber Border File", ID_OPENBORD
+        MENUITEM "Open Gerber Border File (Profile)", ID_OPENBORD
         MENUITEM SEPARATOR
         MENUITEM "Open Isolation Image", ID_OPENTRACE
         MENUITEM SEPARATOR
@@ -34,13 +34,14 @@ RSRC_MENU MENU
         MENUITEM "&Generate MaxCopper", ID_MAXCPR, GRAYED
         MENUITEM "&Generate Trace MMG", ID_MMG, GRAYED
         MENUITEM "&Generate Commands from MMG", ID_CMDS, GRAYED
+        MENUITEM "&Generate Isolation Tracks", ID_ISO
         MENUITEM SEPARATOR
         MENUITEM "&Download Commands to the Machine", ID_DOWNLOAD
     }
     POPUP "View"
     {
         MENUITEM "View Copper Layer", ID_VCPR
-        MENUITEM "View MaxCopper Layer", ID_VMAX
+        MENUITEM "View Routing Tracks", ID_VMAX
         MENUITEM "View Both Layers", ID_VBOTH
         MENUITEM "View MMG Toolpath", ID_VTPTH
         MENUITEM SEPARATOR
@@ -93,12 +94,14 @@ FONT 8, "Ms Shell Dlg"
     EDITTEXT        IDC_EDIT_ZTOP, 95, 22, 80, 14, ES_AUTOHSCROLL, WS_EX_LEFT
     EDITTEXT        IDC_EDIT_ZBOT, 95, 43, 80, 14, ES_AUTOHSCROLL, WS_EX_LEFT
     COMBOBOX        IDC_EDIT_SPD, 95, 63, 80, 98, WS_TABSTOP | CBS_DROPDOWNLIST | CBS_HASSTRINGS | CBS_DISABLENOSCROLL | CBS_SORT, WS_EX_LEFT
+    EDITTEXT        IDC_EDIT_ZHOLE, 95, 84, 80, 14, ES_AUTOHSCROLL, WS_EX_LEFT
     DEFPUSHBUTTON   "OK", ID_OK, 67, 122, 50, 14, 0, WS_EX_LEFT
     PUSHBUTTON      "Cancel", ID_CANCEL, 127, 122, 50, 14, 0, WS_EX_LEFT
     RTEXT           "Safe Z distance (mm):", 0, 19, 24, 70, 9, SS_RIGHT, WS_EX_LEFT
     RTEXT           "Cutting Z depth (mm):", 0, 21, 45, 68, 9, SS_RIGHT, WS_EX_LEFT
     GROUPBOX        "Options", 0, 7, 7, 172, 110, 0, WS_EX_LEFT
     RTEXT           "Max speed index (1->7)", 0, 15, 66, 74, 9, SS_RIGHT, WS_EX_LEFT
+    RTEXT           "Hole Z depth (mm):", 0, 25, 87, 64, 9, SS_RIGHT, WS_EX_LEFT
 }
 
 

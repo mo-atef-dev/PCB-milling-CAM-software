@@ -732,6 +732,184 @@ void All_algorithm_max_cupper(BYTE* pv, UINT cb_Stride, UINT puiWidth, UINT puiH
     inhanceMaxcupper(pv,cb_Stride,puiWidth,puiHeight);
 }
 
+void BlackAroundTracks(BYTE* pv, UINT cb_Stride, UINT puiWidth, UINT puiHeight)
+{
+    //same color
+    for (UINT i = 0 + 2; i < puiHeight - 2; i++)
+    {
+        for (UINT j = 0 + 2; j < puiWidth - 2; j++)
+        {
+            UINT B = 0;
+            UINT G = 0;
+            UINT R = 0;
+            UINT A = 0;
+
+            get_pixel(pv, cb_Stride, j, i, B, G, R, A);
+            if(B == 0 && G == 0 && R >=250)
+            {
+                //red
+                set_pixel(pv,cb_Stride,j,i,0,0,255,A);
+            }
+            else if(B == 0 && G == 0 && R ==0)
+            {
+                continue;
+            }
+            else
+            {
+                //not red
+                set_pixel(pv,cb_Stride,j,i,255,255,255,A);
+            }
+        }
+    }
+
+
+    UINT B = 0;
+    UINT G = 0;
+    UINT R = 0;
+    UINT A = 0;
+
+    UINT B1 = 0;
+    UINT G1 = 0;
+    UINT R1 = 0;
+
+    UINT B2 = 0;
+    UINT G2 = 0;
+    UINT R2 = 0;
+
+    UINT B3 = 0;
+    UINT G3 = 0;
+    UINT R3 = 0;
+
+    UINT B4 = 0;
+    UINT G4 = 0;
+    UINT R4 = 0;
+
+    UINT B5 = 0;
+    UINT G5 = 0;
+    UINT R5 = 0;
+
+    UINT B6 = 0;
+    UINT G6 = 0;
+    UINT R6 = 0;
+
+    UINT B7 = 0;
+    UINT G7 = 0;
+    UINT R7 = 0;
+
+    UINT B8 = 0;
+    UINT G8 = 0;
+    UINT R8 = 0;
+
+    UINT counter =1;
+    bool flag_detect_one = false;
+    int c =0;
+    std::cout<<"loading Without maxcupper...";
+    //while (counter != 0)
+    while (c != 1)
+    {
+        //std::cout<<c<<std::endl;
+        c++;
+        counter = 0;
+        for (UINT i = 0 + 2; i < puiHeight - 2; i++)
+        {
+            for (UINT j = 0 + 2; j < puiWidth - 2; j++)
+            {
+                get_pixel(pv, cb_Stride, j, i, B, G, R, A);
+                if(B == 0 && G == 0 && R == 0)
+                {
+                    //std::cout<<"3"<<std::endl;
+                    continue;
+                }
+                else if(B == 255 && G == 255 && R == 255)
+                {
+                    //std::cout<<"2"<<std::endl;
+                    continue;
+                }
+                else if (B == 0 && G == 0 && R == 255)
+                {
+                    std::cout<<"1111"<<std::endl;
+                    /*get_pixel(pv, cb_Stride, j-1, i-1, B1, G1, R1, A);
+                    //if(B1 ==255 && G1 ==255 && R1==255)
+                    if(!(B1 ==0 && G1 ==0 && R1==255))
+                    {
+                        set_pixel(pv,cb_Stride,j-1,i-1,0,0,0,A);
+                        //set_pixel(pv,cb_Stride,j,i,255,255,255,A);
+                    }*/
+                    get_pixel(pv, cb_Stride, j, i-1, B2, G2, R2, A);
+                    //if(B2 ==255 && G2 ==255 && R2==255)
+                    if(!(B2 ==0 && G2 ==0 && R2==255))
+                    {
+                        set_pixel(pv,cb_Stride,j,i-1,0,0,0,A);
+                        //set_pixel(pv,cb_Stride,j,i,255,255,255,A);
+                    }
+                    /*get_pixel(pv, cb_Stride, j+1, i-1, B3, G3, R3, A);
+                    //if(B3 ==255 && G3 ==255 && R3==255)
+                    if(!(B3 ==0 && G3 ==0 && R3==255))
+                    {
+                        set_pixel(pv,cb_Stride,j+1,i-1,0,0,0,A);
+                        //set_pixel(pv,cb_Stride,j,i,255,255,255,A);
+                    }*/
+                    get_pixel(pv, cb_Stride, j-1, i, B4, G4, R4, A);
+                    //if(B3 ==255 && G3 ==255 && R3==255)
+                    if(!(B4 ==0 && G4 ==0 && R4==255))
+                    {
+                        set_pixel(pv,cb_Stride,j-1,i,0,0,0,A);
+                        //set_pixel(pv,cb_Stride,j,i,255,255,255,A);
+                    }
+                    get_pixel(pv, cb_Stride, j+1, i, B5, G5, R5, A);
+                    //if(B3 ==255 && G3 ==255 && R3==255)
+                    if(!(B5 ==0 && G5 ==0 && R5==255))
+                    {
+                        set_pixel(pv,cb_Stride,j+1,i,0,0,0,A);
+                        //set_pixel(pv,cb_Stride,j,i,255,255,255,A);
+                    }
+                    /*get_pixel(pv, cb_Stride, j-1, i+1, B6, G6, R6, A);
+                    //if(B3 ==255 && G3 ==255 && R3==255)
+                    if(!(B6 ==0 && G6 ==0 && R6==255))
+                    {
+                        set_pixel(pv,cb_Stride,j-1,i+1,0,0,0,A);
+                        //set_pixel(pv,cb_Stride,j,i,255,255,255,A);
+                    }*/
+                    get_pixel(pv, cb_Stride, j, i+1, B7, G7, R7, A);
+                    //if(B3 ==255 && G3 ==255 && R3==255)
+                    if(!(B7 ==0 && G7 ==0 && R7==255))
+                    {
+                        set_pixel(pv,cb_Stride,j,i+1,0,0,0,A);
+                        //set_pixel(pv,cb_Stride,j,i,255,255,255,A);
+                    }
+                    /*get_pixel(pv, cb_Stride, j+1, i+1, B8, G8, R8, A);
+                    //if(B3 ==255 && G3 ==255 && R3==255)
+                    if(!(B8 ==0 && G8 ==0 && R8==255))
+                    {
+                        set_pixel(pv,cb_Stride,j+1,i+1,0,0,0,A);
+                        //set_pixel(pv,cb_Stride,j,i,255,255,255,A);
+                    }*/
+                    //set_pixel(pv,cb_Stride,j,i,255,255,255,A);
+                }
+            }
+        }
+    }
+
+
+    for (UINT i = 0; i < puiHeight; i++)
+    {
+        for (UINT j = 0; j < puiWidth; j++)
+        {
+            UINT BB = 0;
+            UINT GG = 0;
+            UINT RR = 0;
+            UINT A = 0;
+            get_pixel(pv, cb_Stride, j, i, BB, GG, RR, A);
+
+            if(BB == 0 && RR == 255 && GG ==0 )
+            {
+                set_pixel(pv, cb_Stride, j, i, 255, 255, 255, 255);
+            }
+
+        }
+    }
+}
+
 
 void flipBitmap(BYTE* pv_maxcupper_with_drills, BYTE* pv_gerber, BYTE* pv_total,UINT cb_BufferSize,UINT cb_stride, UINT puiHeight, UINT puiWidth)
 {
@@ -782,8 +960,6 @@ void string_to_float(
     float Shift_Y /*= 0*/
 )
 {
-    //Dots per inch
-    //DPI and Device - Independent Pixels need to understand
     int i = 0;
     float x = 0;
     float y = 0;
@@ -793,6 +969,11 @@ void string_to_float(
 
     while (str[index] != '*' && str[index] != 'I' && str[index] != 'J')
     {
+        if(!((float)(str[index] - '0') <= 9 || (float)(str[index] - '0') >= 0))
+        {
+            //an error occures
+            return;
+        }
         num = (float)(str[index] - '0') * pow(10, i);
         result = result + num;
         i++;
@@ -1570,6 +1751,37 @@ ID2D1Bitmap* DrawBitmapOnWindow(
         MMG_or_Maxcupper = false;
     }
 
+    pBitmap_main = pWicBitmap_;
+
+    if(/*pWicBitmap_ == pBitmap_4*/pBitmap_main == pBitmap_4 )//MMG
+    {
+        pRT->Clear(D2D1::ColorF(D2D1::ColorF::White));
+        pRT->DrawBitmap(
+        D2DpBitmap,
+        D2D1::RectF(
+        upperLeftCorner.x,
+        upperLeftCorner.y,
+        upperLeftCorner.x + w_MMG,
+        upperLeftCorner.y + h_MMG)
+        );
+        //std::cout<<"draw not flipped"<<std::endl;
+        MMG_or_Maxcupper = true;
+    }
+    else     //max cupper
+    {
+        pRT->Clear(D2D1::ColorF(D2D1::ColorF::Black));
+        pRT->DrawBitmap(
+        D2DpBitmap,
+        D2D1::RectF(
+        upperLeftCorner.x,
+        upperLeftCorner.y,
+        upperLeftCorner.x + w,
+        upperLeftCorner.y + h)
+        );
+
+        MMG_or_Maxcupper = false;
+    }
+
     pRT->EndDraw();
 
     pBitmap_main = pWicBitmap_;
@@ -1761,6 +1973,11 @@ void DrawDrills_gerber(
         else if ((str[i] == 'D') && (str[i + 1] == '0') && (str[i + 2] == '3'))
         {
             string_to_float(str, i, coord_digits_x, coord_digits_y, DrillCenter_X, DrillCenter_Y, scale,Shift_X,Shift_Y);
+            if(DrillCenter_X > w || DrillCenter_Y > h)
+            {
+                i = i + 3;
+                continue;
+            }
             set_pixel(pv, cb_stride, (int)(DrillCenter_X), (int)(DrillCenter_Y), 0, 0, 0, 255);
             i = i + 3;
         }
@@ -1916,8 +2133,15 @@ void DrawDrills_xln(
         else if(str[i] == 'X' || str[i] == 'Y')
         {
             string_to_float_dill(str, i, coord_digits_x, coord_digits_y, LZ_TZ_dec, DrillCenter_X, DrillCenter_Y, scale, Shift_X, Shift_Y);
-            std::cout<<"DrillCenter_X :"<<DrillCenter_X<<", DrillCenter_Y= "<<DrillCenter_Y<<std::endl;
-            set_pixel(pv, cb_stride, (int)(DrillCenter_X), (int)(DrillCenter_Y), 0, 0, 0, 255);
+            if(DrillCenter_X > w || DrillCenter_Y > h)
+            {
+                //error ocures dont draw this drill
+            }
+            else
+            {
+                std::cout<<"DrillCenter_X :"<<DrillCenter_X<<", DrillCenter_Y= "<<DrillCenter_Y<<std::endl;
+                set_pixel(pv, cb_stride, (int)(DrillCenter_X), (int)(DrillCenter_Y), 0, 0, 0, 255);
+            }
 
             while(str[i]!='\n')
             {
@@ -2659,13 +2883,14 @@ ID2D1Bitmap* DrawGerberOnBitmab(
     shape_y =0;
     pWicRenderTarget_->BeginDraw();
     pWicBrush->SetColor(D2D1::ColorF(0, 0, 0,0));
-    pWicRenderTarget_->FillRectangle(D2D1::RectF(
+    /*pWicRenderTarget_->FillRectangle(D2D1::RectF(
         0,
         0,
         puiWidth,
         puiHeight),
         pWicBrush);
-
+    */
+    pWicRenderTarget_->Clear(D2D1::ColorF(D2D1::ColorF::Black));
     pWicBrush->SetColor(D2D1::ColorF(D2D1::ColorF::Red));
     start_contour = false;
     i = 0;
@@ -2893,11 +3118,9 @@ std::cout<<"start flip"<<std::endl;
 
 
 
-
-
     flipBitmap(pv_maxcupper_with_drills,pv_gerber,pv_total,cb_BufferSize,cb_stride,puiHeight,puiWidth);
 
-    pBitmap_main = pBitmap_;
+    //pBitmap_main = pBitmap_;
 
     //DrawBitmapOnWindow(handeller_to_window,pFactory_, pBitmap_3,wicFactory_);
     //MessageBoxW(handeller_to_window, L"Done", L"Done", MB_OKCANCEL);
@@ -2913,7 +3136,14 @@ std::cout<<"start flip"<<std::endl;
     IWICBitmapEncoder* piEncoder = NULL;
     IWICBitmapFrameEncode* piBitmapFrame = NULL;
     wicFactory_->CreateStream(&piStream);
-    piStream->InitializeFromFilename(L"testOut.bmp", GENERIC_WRITE);
+
+    // Section to set the output path
+    WCHAR szTempPath[MAX_PATH];
+    wcscpy_s(szTempPath, szGerberPath);
+    PathRemoveFileSpecW(szTempPath);
+    PathAppendW(szTempPath, L"MaxCupper.bmp");
+
+    piStream->InitializeFromFilename(szTempPath, GENERIC_WRITE);
     wicFactory_->CreateEncoder(GUID_ContainerFormatBmp, NULL, &piEncoder);
     piEncoder->Initialize(piStream, WICBitmapEncoderNoCache);
     piEncoder->CreateNewFrame(&piBitmapFrame, NULL);
@@ -2933,6 +3163,730 @@ std::cout<<"start flip"<<std::endl;
 
     return /*D2dbitmap*/NULL;
 }
+
+
+
+
+//Without maxcupper
+
+ID2D1Bitmap* DrawGerberOnBitmabWithoutMaxCupper(
+    HWND handeller_to_window,
+    char* str,
+    char* profileStr,
+    char* DrillsStr,
+    float scale ,//each pixel have scale mm
+    /*ID2D1Factory* pFactory_,
+    ID2D1RenderTarget* pWicRenderTarget_,
+    IWICImagingFactory* wicFactory_,
+    IWICBitmap* pBitmap_,
+    ID2D1SolidColorBrush* pWicBrush,*/
+    bool xln_grb /*= true*/
+    )
+{
+    //scale=10;
+    scale = 1/scale;
+    // Create a WIC Fact
+    if(profileStr ==NULL || str==NULL)
+    {
+        return NULL;
+    }
+
+    pBitmap_= NULL;
+    pBitmap_2= NULL;
+    pBitmap_3= NULL;
+    //pBitmap_4= NULL;
+    pBitmap_flip= NULL;
+    pBitmap_2_flip= NULL;
+    pBitmap_3_flip= NULL;
+    //pBitmap_4_flip= NULL;
+
+
+    if (wicFactory_ == NULL)
+    {
+        CoCreateInstance(
+           CLSID_WICImagingFactory,
+           NULL,
+           CLSCTX_INPROC_SERVER,
+           IID_IWICImagingFactory,
+           (LPVOID*)&wicFactory_);
+    }
+
+    UINT puiWidth=0;
+    UINT puiHeight=0;
+    //assume 10^-6 mm mode
+    int coord_digits_x = 4;
+    int coord_digits_y = 4;
+
+    float Shift_X=0;
+    float Shift_Y = 0;
+    GetWidthHeight(handeller_to_window, profileStr, coord_digits_x, coord_digits_y, scale, puiWidth, puiHeight, Shift_X, Shift_Y);
+
+    w = puiWidth;
+    h = puiHeight;
+
+    /*if (pBitmap_ == NULL)
+    {*/
+       // WICPixelFormatGUID formatGUID = GUID_WICPixelFormat32bppPBGRA;//format of bitmap
+        wicFactory_->CreateBitmap(puiWidth, puiHeight, GUID_WICPixelFormat32bppPBGRA, WICBitmapCacheOnDemand, &pBitmap_);
+    //}
+
+    //create factorty
+    if (pFactory_ == NULL)
+    {
+        D2D1CreateFactory(
+            D2D1_FACTORY_TYPE_SINGLE_THREADED, &pFactory_);
+    }
+    /*if (pWicRenderTarget_ == NULL)
+    {*/
+        pFactory_->CreateWicBitmapRenderTarget(
+            pBitmap_,
+            D2D1::RenderTargetProperties(),
+            &pWicRenderTarget_);
+    //}
+
+
+    //create brush
+    if (pWicBrush == NULL)
+    {
+        const D2D1_COLOR_F color = D2D1::ColorF(100, 150, 210);
+        pWicRenderTarget_->CreateSolidColorBrush(color, &pWicBrush);
+    }
+    //End intialization
+    //////////////////////////////////////////////////////////////////////////
+    DrawBorders(pWicRenderTarget_, pWicBrush, puiWidth, puiHeight);
+    const D2D1_COLOR_F color = D2D1::ColorF(255, 0, 0);
+    pWicBrush->SetColor(color);
+
+    //start tracing and draw on wicBitmap
+
+    //object for all shapes
+    all_standerd_aperture all_shapes;
+    //struct for current shape
+    aperture* current_shape=NULL;
+
+    //(x,y) of the current shape
+    float current_x;
+    float current_y;
+    //(x,y) of the new shape
+    float shape_x;
+    float shape_y;
+    //let num = 3 as defult value
+    int num_integers_in_coordinate_x = 3;
+    int num_integers_in_coordinate_y = 3;
+
+    // Draw a black bitmap
+    pWicRenderTarget_->BeginDraw();
+
+
+    pWicRenderTarget_->Clear(D2D1::ColorF(D2D1::ColorF::White));
+
+    std::cout<<"start draw the gerber"<<std::endl;
+    //start tracing the string
+    int i = 0;
+    float contour_x=0;
+    float contour_y=0;
+    float tempX =0;
+    float tempY =0;
+    bool start_contour = false;
+    ID2D1GeometrySink* pSink =NULL;
+    ID2D1PathGeometry* m_pPathGeometry ;
+    bool LPC_LPD = true;
+    while (1)
+    {
+        //end of file
+        if (str[i] == 'M' && str[i + 1] == '0' && str[i + 2] == '2')
+        {
+            pWicRenderTarget_->EndDraw();
+            break;
+        }
+        if(str[i] == 'L' && str[i+1] == 'P' && str[i+2] == 'C' && str[i+3] == '*')
+        {
+            LPC_LPD = true;
+            i = i+3;
+        }
+        else if(str[i] == 'L' && str[i+1] == 'P' && str[i+2] == 'D' && str[i+3] == '*')
+        {
+            LPC_LPD = false;
+            i = i+3;
+        }
+        //G36*
+        else if(str[i] == 'G' && str[i + 1] == '3' && str[i + 2] == '6' && str[i + 3] == '*')
+        {
+            start_contour =true;
+            while(str[i] != 'D' && str[i + 1] != '0' && str[i + 2] != '2')
+            {
+                i++;
+            }
+            string_to_float(str, i, coord_digits_x, coord_digits_y, current_x, current_y,scale, Shift_X, Shift_Y);
+            begin_polygon(current_x,current_y,pFactory_,pSink, m_pPathGeometry);
+            std::cout<<"G36 D02 "<<"current_x "<<current_x<<" current_y "<<current_y<<std::endl;
+            contour_x = current_x;
+            contour_y = current_y;
+            //contour_x = current_x;
+            //contour_y = current_y;
+            i=i+3;
+        }
+        //G01*
+        /*else if(str[i] == 'G' && str[i + 1] == '0' && str[i + 2] == '1' && str[i + 3] == '*')
+        {
+            if(start_contour == true)
+            {
+                begin_polygon(current_x,current_y,pFactory_,pSink, m_pPathGeometry);
+                std::cout<<"current_x"<<current_x<<std::endl;
+                std::cout<<"current_y"<<current_y<<std::endl;
+                contour_x = current_x;
+                contour_y = current_y;
+                //start_contour = false;
+            }
+            i=i+3;
+
+        }*/
+        //G37*
+        else if(str[i] == 'G' && str[i + 1] == '3' && str[i + 2] == '7' && str[i + 3] == '*')
+        {
+            tempX = current_x;
+            tempY = current_y;
+            std::cout<<"end_polygon_1"<<std::endl;
+            pSink->AddLine(D2D1::Point2F(contour_x, contour_y));
+            end_polygon(pSink,m_pPathGeometry,LPC_LPD,pWicRenderTarget_,pWicBrush);
+            //std::cout<<"end_polygon_2"<<std::endl;
+            //pSink->Release();
+            //pSink = NULL;
+            //m_pPathGeometry->Release();
+            //m_pPathGeometry = NULL;
+            //draw_line(handeller_to_window, current_x, current_y, contour_x,contour_y,pWicRenderTarget_, current_shape, pWicBrush);
+            //pWicRenderTarget_->DrawLine(D2D1::Point2F(current_x, current_y), D2D1::Point2F(contour_x, contour_y), pWicBrush ,1.0f);
+            current_x = tempX;
+            current_y = tempY;
+            //std::cout<<"current_x"<<current_x<<std::endl;
+            //std::cout<<"current_y"<<current_y<<std::endl;
+            std::cout<<"G37"<<std::endl;
+            start_contour = false;
+            i=i+3;
+
+        }
+        //draw line
+        else if (str[i] == 'D' && str[i + 1] == '0' && str[i + 2] == '1')
+        {
+            string_to_float(str, i,coord_digits_x,coord_digits_y, shape_x, shape_y, scale,Shift_X,Shift_Y);
+            if(start_contour == true)
+            {
+                //pWicRenderTarget_->DrawLine(D2D1::Point2F(current_x, current_y), D2D1::Point2F(shape_x, shape_y), pWicBrush ,1.0f);
+                std::cout<<"draw_line_polygon_1"<<std::endl;
+                //std::cout<<"shape_x: "<<shape_x<<std::endl;
+                //std::cout<<"shape_y: "<<shape_y<<std::endl;
+                //draw_line_polygon(shape_x,shape_y,pSink);
+                pSink->AddLine(D2D1::Point2F(shape_x, shape_y));
+                std::cout<<"draw_line_polygon_2"<<std::endl;
+                current_x = shape_x;
+                current_y = shape_y;
+            }
+            else
+                {draw_line(handeller_to_window, current_x, current_y, shape_x,shape_y,pWicRenderTarget_, current_shape, pWicBrush);}
+            i = i + 3;
+        }
+        //only move to a certain point
+        else if (str[i] == 'D' && str[i + 1] == '0' && str[i + 2] == '2')
+        {
+            string_to_float(str, i, coord_digits_x, coord_digits_y, current_x, current_y,scale, Shift_X, Shift_Y);
+            i = i + 3;
+        }
+        //creart flash (replicating) the current aperture
+        else if (str[i] == 'D' && str[i + 1] == '0' && str[i + 2] == '3')
+        {
+            //cout<<"D03"<<endl;
+            string_to_float(str, i, coord_digits_x, coord_digits_y, shape_x, shape_y, scale, Shift_X, Shift_Y);
+            //for Circle
+            if (current_shape->type == 1)
+            {
+                Draw_circle(shape_x, shape_y, pWicRenderTarget_, current_shape, pWicBrush);
+                //draw_circle(handeller_to_window, shape_x, shape_y, (current_shape->diameter) / 2);
+            }
+            //for Rectangle
+            else if (current_shape->type == 2)
+            {
+                //string_to_float(size, str, i, coord_digits_x, coord_digits_y, shape_x, shape_y, scale, Shift_X, Shift_Y);
+                draw_rectangle(shape_x, shape_y, pWicRenderTarget_,current_shape,pWicBrush);
+            }
+            //for Obround
+            else if (current_shape->type == 3)
+            {
+                //string_to_float(size, str, i, coord_digits_x, coord_digits_y, shape_x, shape_y, scale, Shift_X, Shift_Y);
+                //Draw_circle(shape_x, shape_y, pWicRenderTarget, current_shape, pWicBrush);
+                draw_Obround(shape_x, shape_y, pWicRenderTarget_,current_shape,pWicBrush);
+            }
+            //for Polygon
+            else if (current_shape->type == 4)
+            {
+                draw_polygon(shape_x, shape_y, pFactory_, pWicRenderTarget_, pWicBrush, current_shape);
+                // draw polygon as circle
+                //draw_circle(handeller_to_window, shape_x, shape_y, (current_shape->diameter) / 2);
+            }
+            current_x = shape_x;
+            current_y = shape_y;
+            i = i + 3;
+        }
+        //create shape (create only not draw .....assume all shapes name start with D..
+        else if (str[i] == 'A' && str[i + 1] == 'D' && str[i + 2] == 'D')
+        {
+            //all shapes start from D10 to D99
+            int num_shape = (int)(str[i + 3] - '0') * 10 + (int)(str[i + 4] - '0') * 1;
+
+            //aperture* shape = all_shapes->get_aperture(num_shape);
+            //create circle
+            if (str[i + 5] == 'C')
+            {
+                float diameter = 0;
+                float hole_diameter = 0;
+                int j = i + 7;
+                while (str[j] != '.')
+                {
+                    j++;
+                }
+                int dot_index = j;
+                float num = 0;
+                float result = 0;
+                int exponent = 0;
+                j--;
+                while (str[j] != ',')
+                {
+                    num = (float)(str[j] - '0') * pow(10, exponent);
+                    result = result + num;
+                    j--;
+                    exponent++;
+                }
+                exponent = -1;
+                j = 1;
+                while (str[dot_index + j] != '*' && str[dot_index + j] != 'X')
+                {
+                    num = (float)(str[dot_index + j] - '0') * pow(10, exponent);
+                    result = result + num;
+                    j++;
+                    exponent--;
+                }
+                //scale the raduis
+                result = result * scale;
+                diameter = result;
+                //diameter = result * pow(10, -coord_digits_x);
+
+                //let the diameter has one digit
+                i = i + 9;
+
+                all_shapes.add_aperture(1, num_shape, diameter, 0, 0, 0, hole_diameter);
+
+            }
+            //for other shapes .....neglict them now
+            else if (str[i + 5] == 'R')
+            {
+                float x = 0;
+                float y = 0;
+                float hole_diameter = 0;
+
+                int j = i + 7;
+                //first number (x)
+                while (str[j] != '.')
+                {
+                    j++;
+                }
+                int dot_index = j;
+                float num = 0;
+                float result = 0;
+                int exponent = 0;
+                j--;
+                while (str[j] != ',')
+                {
+                    num = (float)(str[j] - '0') * pow(10, exponent);
+                    result = result + num;
+                    j--;
+                    exponent++;
+                }
+                exponent = -1;
+                j = 1;
+                int index_y = 0;
+                while (str[dot_index + j] != 'X')
+                {
+                    num = (float)(str[dot_index + j] - '0') * pow(10, exponent);
+                    result = result + num;
+                    j++;
+                    exponent--;
+
+                }
+                //start of y
+                index_y = dot_index + j + 1;
+                result = result * scale;
+                x = result;
+                //x = result * pow(10, -coord_digits_x);
+
+                //second number (y)
+                dot_index = 0;
+                while (str[index_y] != '.')
+                {
+                    index_y++;
+                }
+                dot_index = index_y;
+                num = 0;
+                result = 0;
+                exponent = 0;
+                index_y = index_y - 1;
+                while (str[index_y] != 'X')
+                {
+                    num = (float)(str[index_y] - '0') * pow(10, exponent);
+                    result = result + num;
+                    index_y--;
+                    exponent++;
+                }
+                exponent = -1;
+                index_y = 1;
+                while (str[dot_index + index_y] != '*' && str[dot_index + index_y] != 'X')
+                {
+                    num = (float)(str[dot_index + index_y] - '0') * pow(10, exponent);
+                    result = result + num;
+                    index_y++;
+                    exponent--;
+                }
+                result = result * scale;
+                y = result;
+
+                float diameter = 0/*x*/;
+                //let the diameter has one digit for x and one digit for y
+                i = i + 11;
+
+                all_shapes.add_aperture(2, num_shape, diameter, x, y, 0, hole_diameter);
+            }
+            else if (str[i + 5] == 'O')
+            {
+            float x = 0;
+            float y = 0;
+            float hole_diameter = 0;
+
+            int j = i + 7;
+            //first number (x)
+            while (str[j] != '.')
+            {
+                j++;
+            }
+            int dot_index = j;
+            float num = 0;
+            float result = 0;
+            int exponent = 0;
+            j--;
+            while (str[j] != ',')
+            {
+                num = (float)(str[j] - '0') * pow(10, exponent);
+                result = result + num;
+                j--;
+                exponent++;
+            }
+            exponent = -1;
+            j = 1;
+            int index_y = 0;
+            while (str[dot_index + j] != 'X')
+            {
+                num = (float)(str[dot_index + j] - '0') * pow(10, exponent);
+                result = result + num;
+                j++;
+                exponent--;
+
+            }
+            //start of y
+            index_y = dot_index + j + 1;
+            result = result * scale;
+            x = result;
+            //x = result * pow(10, -coord_digits_x);
+
+            //second number (y)
+            dot_index = 0;
+            while (str[index_y] != '.')
+            {
+                index_y++;
+            }
+            dot_index = index_y;
+            num = 0;
+            result = 0;
+            exponent = 0;
+            index_y = index_y - 1;
+            while (str[index_y] != 'X')
+            {
+                num = (float)(str[index_y] - '0') * pow(10, exponent);
+                result = result + num;
+                index_y--;
+                exponent++;
+            }
+            exponent = -1;
+            index_y = 1;
+            while (str[dot_index + index_y] != '*' && str[dot_index + index_y] != 'X')
+            {
+                num = (float)(str[dot_index + index_y] - '0') * pow(10, exponent);
+                result = result + num;
+                index_y++;
+                exponent--;
+            }
+            result = result * scale;
+            y = result;
+
+            float diameter = x;
+
+                //let the diameter has one digit for x and one digit for y
+                i = i + 11;
+                all_shapes.add_aperture(3, num_shape, diameter, x, y, 0, hole_diameter);
+            }
+            //need to create
+            else if (str[i + 5] == 'P')
+            {
+                float diameter = 0;
+                float vertices = 0;
+                float hole_diameter = 0;
+
+                int j = i + 7;
+                //first number (diameter)
+                while (str[j] != '.')
+                {
+                    j++;
+                }
+                int dot_index = j;
+                float num = 0;
+                float result = 0;
+                int exponent = 0;
+                j--;
+                while (str[j] != ',')
+                {
+                    num = (float)(str[j] - '0') * pow(10, exponent);
+                    result = result + num;
+                    j--;
+                    exponent++;
+                }
+                exponent = -1;
+                j = 1;
+                int index_y = 0;
+                while (str[dot_index + j] != 'X')
+                {
+                    num = (float)(str[dot_index + j] - '0') * pow(10, exponent);
+                    result = result + num;
+                    j++;
+                    exponent--;
+                }
+                //start of y
+                index_y = dot_index + j + 1;
+                result = result * scale;
+                diameter = result;
+
+                //second number (vertices)
+                if (str[index_y + 1] != 'X')
+                {
+                    vertices = (float)(str[index_y] - '0') * 10 + (float)(str[index_y + 1] - '0') * 1;
+                }
+                else if (str[index_y + 1] == 'X')
+                {
+                    vertices = (float)(str[index_y] - '0') * 1;
+                }
+                /*while (str[index_y] != '.')
+                {
+                    index_y++;
+                }
+                dot_index = index_y;
+                num = 0;
+                result = 0;
+                exponent = 0;
+                index_y = index_y - 1;
+                while (str[index_y] != ',')
+                {
+                    num = (float)(str[index_y] - '0') * pow(10, exponent);
+                    result = result + num;
+                    index_y--;
+                    exponent++;
+                }
+                exponent = -1;
+                index_y = 1;
+                while (str[dot_index + index_y] != '*' && str[dot_index + index_y] != 'X')
+                {
+                    num = (float)(str[dot_index + index_y] - '0') * pow(10, exponent);
+                    result = result + num;
+                    index_y++;
+                    exponent--;
+                }*/
+
+                //let the diameter has one digit for x and one digit for y
+
+                all_shapes.add_aperture(4, num_shape, diameter, 0, 0, vertices, hole_diameter);
+                i = i + 12;
+
+            }
+        }
+        else if (str[i] == 'D' && ((int)(str[i + 1])) >= 1 && str[i + 3] == '*')
+        {
+            //all shapes start from D10 to D99
+            int num_shape = (int)(str[i + 1] - '0') * 10 + (int)(str[i + 2] - '0') * 1;
+
+            current_shape = all_shapes.get_aperture(num_shape);
+            i = i + 3;
+        }
+        else if (str[i] == 'F' && str[i + 1] == 'S' && str[i + 2] == 'L' && str[i + 3] == 'A')
+        {
+            num_integers_in_coordinate_x = (int)(str[i + 5] - '0');
+            coord_digits_x = (int)(str[i + 6] - '0');
+
+            num_integers_in_coordinate_y = (int)(str[i + 8] - '0');
+            coord_digits_y = (int)(str[i + 9] - '0');
+            i = i + 11;
+        }
+        else
+        {
+            i++;
+        }
+    }
+
+    std::cout<<"finish gerber file"<<std::endl;
+
+    //DrawBitmapOnWindow(handeller_to_window,pFactory_, pBitmap_,wicFactory_);
+    //MessageBoxW(handeller_to_window, L"start max cupper", L"start max cupper", MB_OKCANCEL);
+
+    //cb_stride is sent by referance, so the initalization of it is in the fancution
+    UINT cb_stride = 0;
+    UINT cb_BufferSize = 0;
+
+    BYTE* pv_maxcupper_with_drills = lockMeoryBitmap(pBitmap_, puiWidth, puiHeight, cb_stride,cb_BufferSize);
+
+
+    //Excute Max cupper algorithm then draw it
+    std::cout<<"start maxcupper"<<std::endl;
+    //All_algorithm_max_cupper(pv_maxcupper_with_drills, cb_stride, puiWidth, puiHeight);
+    //DrawBitmapOnWindow(handeller_to_window, pFactory_, pBitmap_, wicFactory_);
+    //MessageBoxW(handeller_to_window, L"start drills", L"start drills", MB_OKCANCEL);
+
+    std::cout<<"start drills"<<std::endl;
+    //draw drills with set_pixel()
+    if(xln_grb == true)
+    {
+        DrawDrills_xln(pv_maxcupper_with_drills,cb_stride,DrillsStr, coord_digits_x, coord_digits_y, Shift_X, Shift_Y, scale);
+    }
+    else if(xln_grb == false)
+    {
+        DrawDrills_gerber(pv_maxcupper_with_drills,cb_stride,DrillsStr, coord_digits_x, coord_digits_y, Shift_X, Shift_Y, scale);
+    }
+    //DrawBitmapOnWindow(handeller_to_window, pFactory_, pBitmap_, wicFactory_);
+    //MessageBoxW(handeller_to_window, L"end drills", L"end drills", MB_OKCANCEL);
+    std::cout<<"End drill file"<<std::endl;
+
+    std::cout<<"Draw Borders"<<std::endl;
+    //borders black
+    DrawBordersAtEnd(pv_maxcupper_with_drills,cb_stride,puiWidth,puiHeight);
+
+
+    wicFactory_->CreateBitmap(puiWidth, puiHeight, GUID_WICPixelFormat32bppPBGRA, WICBitmapCacheOnDemand, &pBitmap_2);
+    BYTE* pv_2 = lockMeoryBitmap(pBitmap_2, puiWidth, puiHeight, cb_stride,cb_BufferSize);
+
+
+    wicFactory_->CreateBitmap(puiWidth, puiHeight, GUID_WICPixelFormat32bppPBGRA, WICBitmapCacheOnDemand, &pBitmap_2_flip);
+    BYTE* pv_2_filp = lockMeoryBitmap(pBitmap_2_flip, puiWidth, puiHeight, cb_stride,cb_BufferSize);
+
+    UINT BB = 0;
+    UINT GG = 0;
+    UINT RR = 0;
+    UINT A = 0;
+    for (UINT i = 0; i < puiHeight; i++)
+    {
+        for (UINT j = 0; j < puiWidth; j++)
+        {
+             get_pixel(pv_maxcupper_with_drills, cb_stride, j, i, BB, GG, RR, A);
+             set_pixel(pv_2_filp, cb_stride, j, i, BB, GG, RR,A);
+        }
+    }
+
+
+    ///
+    //add filp circuit
+    //BYTE* pvTemp_ = new BYTE[cb_BufferSize];
+
+    for (UINT i = 0; i < puiHeight; i++)
+    {
+        for (UINT j = 0; j < puiWidth; j++)
+        {
+             get_pixel(pv_2_filp, cb_stride, j, i, BB, GG, RR, A);
+             set_pixel(pv_2, cb_stride, j, puiHeight-i-1, BB, GG, RR,A);
+        }
+    }
+
+    BlackAroundTracks(pv_maxcupper_with_drills, cb_stride, puiWidth, puiHeight);
+
+    std::cout<<"start flip"<<std::endl;
+    wicFactory_->CreateBitmap(puiWidth, puiHeight, GUID_WICPixelFormat32bppPBGRA, WICBitmapCacheOnDemand, &pBitmap_flip);
+
+    BYTE* pv_filp = lockMeoryBitmap(pBitmap_flip, puiWidth, puiHeight, cb_stride,cb_BufferSize);
+    ///
+    //add filp circuit
+    //BYTE* pvTemp_ = new BYTE[cb_BufferSize];
+
+    for (UINT i = 0; i < puiHeight; i++)
+    {
+        for (UINT j = 0; j < puiWidth; j++)
+        {
+             get_pixel(pv_maxcupper_with_drills, cb_stride, j, i, BB, GG, RR, A);
+             set_pixel(pv_filp, cb_stride, j, puiHeight-i-1, BB, GG, RR,A);
+        }
+    }
+
+    BYTE* temp =new BYTE[cb_BufferSize];
+    for(int k =0;k<cb_BufferSize;k++)
+    {
+        *(temp + k) = *(pv_maxcupper_with_drills + k);
+    }
+    for(int k =0;k<cb_BufferSize;k++)
+    {
+        *(pv_maxcupper_with_drills + k) = *(pv_filp + k);
+    }
+    for(int k =0;k<cb_BufferSize;k++)
+    {
+        *(pv_filp + k) = *(temp + k);
+    }
+
+
+
+    ///
+    //initalize the bitmap object
+    //bitmapObject.SetSpecifications(pv_maxcupper_with_drills, cb_BufferSize, cb_stride, puiWidth, puiHeight);
+    bitmapObject.SetSpecifications(pv_maxcupper_with_drills, cb_BufferSize, cb_stride, puiWidth, puiHeight);
+    ////
+
+    //Export the Bitmap
+    IWICStream* piStream = NULL;
+    IWICBitmapEncoder* piEncoder = NULL;
+    IWICBitmapFrameEncode* piBitmapFrame = NULL;
+    wicFactory_->CreateStream(&piStream);
+
+    // Section to set the output path
+    WCHAR szTempPath[MAX_PATH];
+    wcscpy_s(szTempPath, szGerberPath);
+    PathRemoveFileSpecW(szTempPath);
+    PathAppendW(szTempPath, L"Circuit.bmp");
+
+    piStream->InitializeFromFilename(szTempPath, GENERIC_WRITE);
+    wicFactory_->CreateEncoder(GUID_ContainerFormatBmp, NULL, &piEncoder);
+    piEncoder->Initialize(piStream, WICBitmapEncoderNoCache);
+    piEncoder->CreateNewFrame(&piBitmapFrame, NULL);
+    piBitmapFrame->Initialize(NULL);
+
+    WICPixelFormatGUID formatGUID = GUID_WICPixelFormat32bppBGRA;
+    piBitmapFrame->SetSize(puiWidth, puiHeight);
+    piBitmapFrame->SetPixelFormat(&formatGUID);
+    //save the maxcupper bmp
+    //piBitmapFrame->WriteSource(pBitmap_, NULL);
+    piBitmapFrame->WriteSource(pBitmap_, NULL);
+
+    piBitmapFrame->Commit();
+    piEncoder->Commit();
+
+    //MessageBoxW(handeller_to_window, L"Done Writting", L"Done",MB_OK);
+
+    return /*D2dbitmap*/NULL;
+}
+
+
+
+
+
+
+
+
 
 
 void Resize(HWND handeller_to_window,ID2D1HwndRenderTarget* pRT, ID2D1Bitmap* D2DpBitmap)
@@ -3179,6 +4133,7 @@ void DrawMMG(std::vector <CompressedCommand> commands, float scale)
     std::cout<<"start draw"<<std::endl;
     pWicRenderTarget_->BeginDraw();
 
+    //pWicRenderTarget_->Clear(D2D1::ColorF(D2D1::ColorF::White));
     pWicRenderTarget_->Clear(D2D1::ColorF(D2D1::ColorF::White));
 
 
@@ -3210,7 +4165,7 @@ void DrawMMG(std::vector <CompressedCommand> commands, float scale)
         currentX = commands[i].x * scale + shift_x +1 ;//1 for safty
         currentY = commands[i].y * scale + shift_y +1 ;//1 for safty
         currentZ = commands[i].z;
-        if(currentZ <= low_level_z)
+        if(currentZ <= 0)
         {
             pWicRenderTarget_->DrawLine(D2D1::Point2F(previousX, /*h_MMG-*/previousY), D2D1::Point2F(currentX, /*h_MMG-*/currentY), pWicBrush, 1.0);
             //std::cout<<"line"<<std::endl;
@@ -3264,7 +4219,7 @@ void DrawMMG(std::vector <CompressedCommand> commands, float scale)
         *(pv_4 + k) = *(pvTemp_4 + k);
     }
 
-    pBitmap_main = pBitmap_4;
+    //pBitmap_main = pBitmap_4;
 }
 
 
